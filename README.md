@@ -30,6 +30,7 @@
 | **Phantom (JS)** | package.json에 없는 import | HIGH |
 | **Phantom (Python)** | requirements.txt에 없는 import | HIGH |
 | **다중 버전** | 같은 패키지 여러 버전 설치 | MEDIUM |
+| **Override Layer** | LLM 기반 오타/별칭/내부 모듈 보정 | - |
 
 ## 설치
 
@@ -54,6 +55,17 @@ python -m depsolve_ext analyze . --verify --verbose
 # JSON/Markdown 출력
 python -m depsolve_ext analyze . --format json
 python -m depsolve_ext analyze . --format markdown
+
+# --- Override 관련 명령어 ---
+
+# Override 템플릿 초기화 (.depsolve/overrides.yaml 생성)
+python -m depsolve_ext init-overrides .
+
+# Override 규칙 검증 (실제 설치 여부 등 확인)
+python -m depsolve_ext verify-overrides . --verbose
+
+# Override 적용 미리보기 (변경 전/후 비교)
+python -m depsolve_ext apply-overrides .
 
 # Phantom만 탐지
 python -m depsolve_ext phantoms .
@@ -147,6 +159,8 @@ depsolve_ext/
 ├── graph.py         # 의존성 그래프 (순환, 다이아몬드)
 ├── extensions.py    # 생태계 인식 Import, Phantom, 검증
 ├── analyzer.py      # 통합 분석기
+├── override_engine.py # Override 레이어 핵심 엔진 (내장 별칭, 규칙 적용)
+├── override_verifier.py # Override 규칙 검증기 (런타임 기반 유효성 확인)
 ├── reporters.py     # 리포터 (Console, Markdown, JSON)
 ├── cli.py           # CLI 구현
 ├── tests.py         # 테스트 (35개)
@@ -176,6 +190,12 @@ python -m depsolve_ext.tests
 | Rust | Cargo.toml | ⚠️ (파싱만) |
 
 ## 변경 이력
+
+### v0.5.0 (Current)
+- **Override Layer 통합**: 분석 파이프라인(`analyze`)에 오버라이드 보정 엔진 통합
+- **지능형 별칭 처리**: `pil`, `dotenv`, `yaml` 등 20+종의 Python 패키지 별칭 자동 처리 (Phantom 오탐 수정)
+- **검증 기반 오버라이드**: `overrides.yaml` 규칙에 대한 런타임 검증 시스템 도입
+- **신규 명령어**: `init-overrides`, `verify-overrides`, `apply-overrides` 추가
 
 ### v0.4.0
 - 하이브리드 프로젝트 서브디렉토리 manifest 탐지 개선 (backend/ 등)
