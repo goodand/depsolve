@@ -2,7 +2,7 @@
 """
 depsolve_ext/cli.py
 ===================
-depsolve í™•ìž¥ ëª¨ë“ˆ CLI
+depsolve Ã­â„¢â€¢Ã¬Å¾Â¥ Ã«ÂªÂ¨Ã«â€œË† CLI
 
 Usage:
     python -m depsolve_ext analyze ./my-project
@@ -26,9 +26,24 @@ from .extensions import (
 from .reporters import ConsoleReporter, MarkdownReporter, JsonReporter
 from .models import Severity
 
+# Override 모듈 (lazy import for backward compatibility)
+def _get_override_modules():
+    from .override_engine import OverrideConfig, OverrideApplicator, create_initial_overrides
+    from .override_verifier import (
+        OverrideVerifier, update_overrides_with_verification, generate_verification_report
+    )
+    return {
+        'OverrideConfig': OverrideConfig,
+        'OverrideApplicator': OverrideApplicator,
+        'create_initial_overrides': create_initial_overrides,
+        'OverrideVerifier': OverrideVerifier,
+        'update_overrides_with_verification': update_overrides_with_verification,
+        'generate_verification_report': generate_verification_report,
+    }
+
 
 def load_npm_deps(project_path: Path) -> tuple[Set[str], Set[str]]:
-    """package.jsonì—ì„œ ì˜ì¡´ì„± ë¡œë“œ"""
+    """package.jsonÃ¬â€”ÂÃ¬â€žÅ“ Ã¬ÂËœÃ¬Â¡Â´Ã¬â€žÂ± Ã«Â¡Å“Ã«â€œÅ“"""
     pkg_json = project_path / "package.json"
     if not pkg_json.exists():
         return set(), set()
@@ -59,14 +74,14 @@ def print_section(text: str):
 # =============================================================================
 
 def cmd_analyze(args):
-    """í”„ë¡œì íŠ¸ ì „ì²´ ë¶„ì„"""
+    """Ã­â€â€žÃ«Â¡Å“Ã¬Â ÂÃ­Å Â¸ Ã¬Â â€žÃ¬Â²Â´ Ã«Â¶â€žÃ¬â€žÂ"""
     project = Path(args.path).resolve()
     
     if not project.exists():
         print(f"Error: Path not found: {project}", file=sys.stderr)
         return 1
     
-    # ë¶„ì„ ì‹¤í–‰
+    # Ã«Â¶â€žÃ¬â€žÂ Ã¬â€¹Â¤Ã­â€“â€°
     result = analyze(
         project_path=str(project),
         verify=args.verify,
@@ -74,7 +89,7 @@ def cmd_analyze(args):
         max_nodes=args.max_nodes
     )
     
-    # ì¶œë ¥ í˜•ì‹ ì„ íƒ
+    # Ã¬Â¶Å“Ã«Â Â¥ Ã­Ëœâ€¢Ã¬â€¹Â Ã¬â€žÂ Ã­Æ’Â
     if args.format == "json":
         reporter = JsonReporter()
     elif args.format == "markdown":
@@ -87,7 +102,7 @@ def cmd_analyze(args):
     
     reporter.report(result)
     
-    # ì¢…ë£Œ ì½”ë“œ: HIGH ì´ìƒ ì´ìŠˆê°€ ìžˆìœ¼ë©´ 1
+    # Ã¬Â¢â€¦Ã«Â£Å’ Ã¬Â½â€Ã«â€œÅ“: HIGH Ã¬ÂÂ´Ã¬Æ’Â Ã¬ÂÂ´Ã¬Å Ë†ÃªÂ°â‚¬ Ã¬Å¾Ë†Ã¬Å“Â¼Ã«Â©Â´ 1
     has_high = any(
         i.severity in (Severity.CRITICAL, Severity.HIGH)
         for i in result.issues
@@ -96,7 +111,7 @@ def cmd_analyze(args):
 
 
 def cmd_phantoms(args):
-    """Phantom ì˜ì¡´ì„± íƒì§€"""
+    """Phantom Ã¬ÂËœÃ¬Â¡Â´Ã¬â€žÂ± Ã­Æ’ÂÃ¬Â§â‚¬"""
     project = Path(args.path).resolve()
     
     if not project.exists():
@@ -130,7 +145,7 @@ def cmd_phantoms(args):
 
 
 def cmd_graph(args):
-    """ì˜ì¡´ì„± ê·¸ëž˜í”„ ë¶„ì„"""
+    """Ã¬ÂËœÃ¬Â¡Â´Ã¬â€žÂ± ÃªÂ·Â¸Ã«Å¾ËœÃ­â€â€ž Ã«Â¶â€žÃ¬â€žÂ"""
     project = Path(args.path).resolve()
     
     if not project.exists():
@@ -148,14 +163,14 @@ def cmd_graph(args):
     print(f"  Nodes: {graph.node_count}")
     print(f"  Edges: {graph.edge_count}")
     
-    # ìˆœí™˜ íƒì§€
+    # Ã¬Ë†Å“Ã­â„¢Ëœ Ã­Æ’ÂÃ¬Â§â‚¬
     cycles = graph.find_cycles()
     if cycles:
         print_section(f"Circular Dependencies ({len(cycles)})")
         for cycle in cycles[:10]:
-            print(f"  â€¢ {' â†’ '.join(cycle.path)}")
+            print(f"  Ã¢â‚¬Â¢ {' Ã¢â€ â€™ '.join(cycle.path)}")
     
-    # ë‹¤ì´ì•„ëª¬ë“œ íƒì§€
+    # Ã«â€¹Â¤Ã¬ÂÂ´Ã¬â€¢â€žÃ«ÂªÂ¬Ã«â€œÅ“ Ã­Æ’ÂÃ¬Â§â‚¬
     diamonds = graph.find_diamonds()
     conflicts = [d for d in diamonds if d.has_version_conflict]
     
@@ -165,10 +180,10 @@ def cmd_graph(args):
         
         for d in conflicts[:5]:
             print(f"\n  {d.top}")
-            print(f"    â”œâ”€ {d.left} â†’ {d.bottom}@{d.left_version}")
-            print(f"    â””â”€ {d.right} â†’ {d.bottom}@{d.right_version}")
+            print(f"    Ã¢â€Å“Ã¢â€â‚¬ {d.left} Ã¢â€ â€™ {d.bottom}@{d.left_version}")
+            print(f"    Ã¢â€â€Ã¢â€â‚¬ {d.right} Ã¢â€ â€™ {d.bottom}@{d.right_version}")
     
-    # Mermaid ì¶œë ¥
+    # Mermaid Ã¬Â¶Å“Ã«Â Â¥
     if args.mermaid:
         print_section("Mermaid Diagram")
         print()
@@ -181,7 +196,7 @@ def cmd_graph(args):
 
 
 def cmd_imports(args):
-    """íŒŒì¼ì—ì„œ import ì¶”ì¶œ"""
+    """Ã­Å’Å’Ã¬ÂÂ¼Ã¬â€”ÂÃ¬â€žÅ“ import Ã¬Â¶â€Ã¬Â¶Å“"""
     path = Path(args.file).resolve()
     
     if not path.exists():
@@ -194,7 +209,7 @@ def cmd_imports(args):
     print_header(f"Imports: {path.name}")
     print(f"Total: {len(imports)}")
     
-    # íƒ€ìž…ë³„ ê·¸ë£¹í™”
+    # Ã­Æ’â‚¬Ã¬Å¾â€¦Ã«Â³â€ž ÃªÂ·Â¸Ã«Â£Â¹Ã­â„¢â€
     by_type = {}
     for imp in imports:
         t = imp.import_type.value
@@ -206,7 +221,7 @@ def cmd_imports(args):
         print(f"\n[{imp_type}] ({len(imps)})")
         for imp in imps:
             extra = " (type-only)" if imp.is_type_only else ""
-            print(f"  â€¢ {imp.package}{extra}")
+            print(f"  Ã¢â‚¬Â¢ {imp.package}{extra}")
             if args.verbose:
                 print(f"    {imp.module} (line {imp.line})")
     
@@ -221,7 +236,7 @@ def cmd_imports(args):
 
 
 def cmd_ecosystem(args):
-    """ìƒíƒœê³„ ê°ì§€"""
+    """Ã¬Æ’ÂÃ­Æ’Å“ÃªÂ³â€ž ÃªÂ°ÂÃ¬Â§â‚¬"""
     project = Path(args.path).resolve()
     
     if not project.exists():
@@ -230,10 +245,10 @@ def cmd_ecosystem(args):
     
     print_header(f"Ecosystem Detection: {project}")
     
-    # ë‚´ìž¥ ê°ì§€
+    # Ã«â€šÂ´Ã¬Å¾Â¥ ÃªÂ°ÂÃ¬Â§â‚¬
     detected = EcosystemDetector.detect(project)
     
-    # npm/pip ì¶”ê°€ ê°ì§€
+    # npm/pip Ã¬Â¶â€ÃªÂ°â‚¬ ÃªÂ°ÂÃ¬Â§â‚¬
     if (project / "package.json").exists():
         print("\n[NPM]")
         deps, dev_deps = load_npm_deps(project)
@@ -252,7 +267,7 @@ def cmd_ecosystem(args):
             print(f"  Version: {info.version}")
             print(f"  Dependencies: {len(info.dependencies)}")
             for dep, ver in list(info.dependencies.items())[:5]:
-                print(f"    â€¢ {dep}: {ver}")
+                print(f"    Ã¢â‚¬Â¢ {dep}: {ver}")
         except Exception as e:
             print(f"  Error: {e}")
     
@@ -261,7 +276,7 @@ def cmd_ecosystem(args):
 
 
 def cmd_multi_version(args):
-    """ë‹¤ì¤‘ ë²„ì „ íŒ¨í‚¤ì§€ íƒì§€"""
+    """Ã«â€¹Â¤Ã¬Â¤â€˜ Ã«Â²â€žÃ¬Â â€ž Ã­Å’Â¨Ã­â€šÂ¤Ã¬Â§â‚¬ Ã­Æ’ÂÃ¬Â§â‚¬"""
     project = Path(args.path).resolve()
     
     print_header(f"Multi-Version Detection: {project}")
@@ -275,21 +290,201 @@ def cmd_multi_version(args):
     multi = verifier.get_multi_versions()
     
     if not multi:
-        print("  âœ“ No multiple version packages found")
+        print("  Ã¢Å“â€œ No multiple version packages found")
         return 0
     
     print(f"  Found {len(multi)} packages with multiple versions:\n")
     
     for m in multi:
-        print(f"  â€¢ {m.package}")
+        print(f"  Ã¢â‚¬Â¢ {m.package}")
         print(f"    Versions: {', '.join(m.versions)}")
         if args.verbose:
             for path in m.paths[:3]:
-                print(f"    Path: {' â†’ '.join(path)}")
+                print(f"    Path: {' Ã¢â€ â€™ '.join(path)}")
     
     print()
     return 0
 
+
+def cmd_verify_overrides(args):
+    """Override 검증"""
+    project = Path(args.path).resolve()
+    
+    if not project.exists():
+        print(f"Error: Path not found: {project}", file=sys.stderr)
+        return 1
+    
+    override_modules = _get_override_modules()
+    OverrideConfig = override_modules['OverrideConfig']
+    OverrideVerifier = override_modules['OverrideVerifier']
+    update_overrides_with_verification = override_modules['update_overrides_with_verification']
+    generate_verification_report = override_modules['generate_verification_report']
+    
+    override_file = project / ".depsolve" / "overrides.yaml"
+    if not override_file.exists():
+        print(f"Error: No overrides.yaml found at {override_file}", file=sys.stderr)
+        print("Run 'depsolve_ext init-overrides' first.", file=sys.stderr)
+        return 1
+    
+    print_header("Override Verification")
+    print(f"  Project: {project}")
+    print(f"  Override file: {override_file}")
+    
+    # 설정 로드 (검증 대상이므로 미검증 항목도 포함)
+    config = OverrideConfig.load(project, include_unverified=True)
+    
+    if not config.has_any_overrides():
+        print("\n  No overrides to verify.")
+        return 0
+    
+    # 검증 실행
+    print_section("Running Verification")
+    verifier = OverrideVerifier(project)
+    results = verifier.verify_all(config)
+    
+    # 결과 출력
+    success = [r for r in results if r.success]
+    failed = [r for r in results if not r.success]
+    
+    print(f"\n  Total: {len(results)} entries")
+    print(f"  ✓ Passed: {len(success)}")
+    print(f"  ✗ Failed: {len(failed)}")
+    
+    if args.verbose:
+        if success:
+            print_section("Verified")
+            for r in success:
+                print(f"  ✓ {r.entry.key} → {r.entry.value}")
+                if r.details:
+                    for k, v in r.details.items():
+                        print(f"      {k}: {v}")
+        
+        if failed:
+            print_section("Failed")
+            for r in failed:
+                print(f"  ✗ {r.entry.key}")
+                print(f"      Error: {r.error}")
+    
+    # overrides.yaml 업데이트
+    success_count, fail_count = update_overrides_with_verification(project, results)
+    
+    print_section("Summary")
+    print(f"  Updated overrides.yaml: {success_count} verified, {fail_count} failed")
+    
+    # 리포트 생성 (옵션)
+    if args.report:
+        report = generate_verification_report(results)
+        report_path = project / ".depsolve" / "verification_report.md"
+        report_path.write_text(report)
+        print(f"  Report saved: {report_path}")
+    
+    print()
+    return 1 if failed else 0
+
+
+def cmd_init_overrides(args):
+    """Override 템플릿 초기화"""
+    project = Path(args.path).resolve()
+    
+    if not project.exists():
+        print(f"Error: Path not found: {project}", file=sys.stderr)
+        return 1
+    
+    override_modules = _get_override_modules()
+    create_initial_overrides = override_modules['create_initial_overrides']
+    
+    override_dir = project / ".depsolve"
+    override_file = override_dir / "overrides.yaml"
+    
+    if override_file.exists() and not args.force:
+        print(f"Error: {override_file} already exists.", file=sys.stderr)
+        print("Use --force to overwrite.", file=sys.stderr)
+        return 1
+    
+    override_dir.mkdir(parents=True, exist_ok=True)
+    
+    # 템플릿 생성
+    config = create_initial_overrides(project)
+    config.save(project)
+    
+    print_header("Override Initialization")
+    print(f"  Created: {override_file}")
+    print()
+    print("  Next steps:")
+    print("  1. Edit .depsolve/overrides.yaml to add your overrides")
+    print("  2. Run 'depsolve_ext verify-overrides .' to validate")
+    print("  3. Run 'depsolve_ext analyze .' to apply overrides")
+    print()
+    
+    return 0
+
+
+def cmd_apply_overrides(args):
+    """Override 적용 결과 미리보기"""
+    project = Path(args.path).resolve()
+    
+    if not project.exists():
+        print(f"Error: Path not found: {project}", file=sys.stderr)
+        return 1
+    
+    override_modules = _get_override_modules()
+    OverrideConfig = override_modules['OverrideConfig']
+    OverrideApplicator = override_modules['OverrideApplicator']
+    
+    override_file = project / ".depsolve" / "overrides.yaml"
+    if not override_file.exists():
+        print(f"Error: No overrides.yaml found at {override_file}", file=sys.stderr)
+        return 1
+    
+    print_header("Override Application Preview")
+    print(f"  Project: {project}")
+    
+    # Phantom 탐지
+    from .extensions import load_hybrid_manifest
+    manifest = load_hybrid_manifest(project)
+    
+    detector = PhantomDetector(
+        project,
+        js_deps=manifest.js_deps,
+        js_dev_deps=manifest.js_dev_deps,
+        py_deps=manifest.py_deps,
+        py_dev_deps=manifest.py_dev_deps,
+        verify=args.verify
+    )
+    
+    phantoms = detector.detect()
+    original_count = len([p for p in phantoms if p.is_phantom])
+    
+    print_section("Before Override")
+    print(f"  Phantoms detected: {original_count}")
+    
+    # Override 적용
+    config = OverrideConfig.load(project)
+    applicator = OverrideApplicator(config)
+    modified = applicator.apply(phantoms)
+    
+    final_count = len([p for p in modified if p.is_phantom])
+    
+    print_section("After Override")
+    print(f"  Phantoms remaining: {final_count}")
+    print(f"  Resolved: {original_count - final_count}")
+    
+    stats = applicator.stats
+    print_section("Override Stats")
+    print(f"  Typo corrected: {stats['typo_corrected']}")
+    print(f"  Alias resolved: {stats['alias_resolved']}")
+    print(f"  Internal marked: {stats['internal_marked']}")
+    print(f"  Ignored: {stats['ignored']}")
+    
+    if args.verbose:
+        # 변경된 항목 상세
+        print_section("Changed Items")
+        for p in modified:
+            if "[Override]" in p.reason:
+                print(f"  • {p.package}: {p.reason}")
+    
+    print()
+    return 0
 
 # =============================================================================
 # Main
@@ -298,50 +493,67 @@ def cmd_multi_version(args):
 def main(argv=None):
     parser = argparse.ArgumentParser(
         prog='depsolve_ext',
-        description='depsolve í†µí•© ì˜ì¡´ì„± ë¶„ì„ê¸°'
+        description='depsolve 통합 의존성 분석기'
     )
-    parser.add_argument('--version', action='version', version='0.2.0')
+    parser.add_argument('--version', action='version', version='0.3.0')
     
     subparsers = parser.add_subparsers(dest='command', help='Commands')
     
     # analyze
-    p_analyze = subparsers.add_parser('analyze', help='í”„ë¡œì íŠ¸ ì „ì²´ ë¶„ì„')
-    p_analyze.add_argument('path', help='í”„ë¡œì íŠ¸ ê²½ë¡œ')
-    p_analyze.add_argument('--verify', '-v', action='store_true', help='ëŸ°íƒ€ìž„ ê²€ì¦')
-    p_analyze.add_argument('--verbose', action='store_true', help='ìƒì„¸ ì¶œë ¥')
-    p_analyze.add_argument('--no-dev', action='store_true', help='devDependencies ì œì™¸')
-    p_analyze.add_argument('--no-color', action='store_true', help='ìƒ‰ìƒ ë¹„í™œì„±í™”')
+    p_analyze = subparsers.add_parser('analyze', help='프로젝트 전체 분석')
+    p_analyze.add_argument('path', help='프로젝트 경로')
+    p_analyze.add_argument('--verify', '-v', action='store_true', help='런타임 검증')
+    p_analyze.add_argument('--verbose', action='store_true', help='상세 출력')
+    p_analyze.add_argument('--no-dev', action='store_true', help='devDependencies 제외')
+    p_analyze.add_argument('--no-color', action='store_true', help='색상 비활성화')
     p_analyze.add_argument('--format', '-f', choices=['console', 'json', 'markdown'],
-                          default='console', help='ì¶œë ¥ í˜•ì‹')
-    p_analyze.add_argument('--max-nodes', type=int, default=50, help='Mermaid ë‹¤ì´ì–´ê·¸ëž¨ ìµœëŒ€ ë…¸ë“œ ìˆ˜')
+                          default='console', help='출력 형식')
+    p_analyze.add_argument('--max-nodes', type=int, default=50, help='Mermaid 최대 노드 수')
     
     # phantoms
-    p_phantoms = subparsers.add_parser('phantoms', help='Phantom ì˜ì¡´ì„± íƒì§€')
-    p_phantoms.add_argument('path', help='í”„ë¡œì íŠ¸ ê²½ë¡œ')
-    p_phantoms.add_argument('--verify', '-v', action='store_true', help='ëŸ°íƒ€ìž„ ê²€ì¦')
+    p_phantoms = subparsers.add_parser('phantoms', help='Phantom 의존성 탐지')
+    p_phantoms.add_argument('path', help='프로젝트 경로')
+    p_phantoms.add_argument('--verify', '-v', action='store_true', help='런타임 검증')
     p_phantoms.add_argument('--no-color', action='store_true')
     
     # graph
-    p_graph = subparsers.add_parser('graph', help='ì˜ì¡´ì„± ê·¸ëž˜í”„ ë¶„ì„')
-    p_graph.add_argument('path', help='í”„ë¡œì íŠ¸ ê²½ë¡œ')
+    p_graph = subparsers.add_parser('graph', help='의존성 그래프 분석')
+    p_graph.add_argument('path', help='프로젝트 경로')
     p_graph.add_argument('--verify', '-v', action='store_true')
-    p_graph.add_argument('--mermaid', '-m', action='store_true', help='Mermaid ë‹¤ì´ì–´ê·¸ëž¨ ì¶œë ¥')
-    p_graph.add_argument('--max-nodes', type=int, default=50, help='ìµœëŒ€ ë…¸ë“œ ìˆ˜')
+    p_graph.add_argument('--mermaid', '-m', action='store_true', help='Mermaid 다이어그램 출력')
+    p_graph.add_argument('--max-nodes', type=int, default=50, help='최대 노드 수')
     
     # imports
-    p_imports = subparsers.add_parser('imports', help='íŒŒì¼ import ì¶”ì¶œ')
-    p_imports.add_argument('file', help='íŒŒì¼ ê²½ë¡œ')
-    p_imports.add_argument('--json', action='store_true', help='JSON ì¶œë ¥')
+    p_imports = subparsers.add_parser('imports', help='파일 import 추출')
+    p_imports.add_argument('file', help='파일 경로')
+    p_imports.add_argument('--json', action='store_true', help='JSON 출력')
     p_imports.add_argument('--verbose', action='store_true')
     
     # ecosystem
-    p_eco = subparsers.add_parser('ecosystem', help='ìƒíƒœê³„ ê°ì§€')
-    p_eco.add_argument('path', help='í”„ë¡œì íŠ¸ ê²½ë¡œ')
+    p_eco = subparsers.add_parser('ecosystem', help='생태계 감지')
+    p_eco.add_argument('path', help='프로젝트 경로')
     
     # multi-version
-    p_multi = subparsers.add_parser('multi-version', help='ë‹¤ì¤‘ ë²„ì „ íƒì§€')
-    p_multi.add_argument('path', help='í”„ë¡œì íŠ¸ ê²½ë¡œ')
+    p_multi = subparsers.add_parser('multi-version', help='다중 버전 탐지')
+    p_multi.add_argument('path', help='프로젝트 경로')
     p_multi.add_argument('--verbose', action='store_true')
+    
+    # verify-overrides
+    p_verify_override = subparsers.add_parser('verify-overrides', help='Override 검증')
+    p_verify_override.add_argument('path', help='프로젝트 경로')
+    p_verify_override.add_argument('--verbose', action='store_true', help='상세 출력')
+    p_verify_override.add_argument('--report', action='store_true', help='검증 리포트 생성')
+    
+    # init-overrides
+    p_init_override = subparsers.add_parser('init-overrides', help='Override 템플릿 초기화')
+    p_init_override.add_argument('path', help='프로젝트 경로')
+    p_init_override.add_argument('--force', action='store_true', help='기존 파일 덮어쓰기')
+    
+    # apply-overrides
+    p_apply_override = subparsers.add_parser('apply-overrides', help='Override 적용 미리보기')
+    p_apply_override.add_argument('path', help='프로젝트 경로')
+    p_apply_override.add_argument('--verify', '-v', action='store_true', help='런타임 검증')
+    p_apply_override.add_argument('--verbose', action='store_true', help='상세 출력')
     
     args = parser.parse_args(argv)
     
@@ -356,6 +568,9 @@ def main(argv=None):
         'imports': cmd_imports,
         'ecosystem': cmd_ecosystem,
         'multi-version': cmd_multi_version,
+        'verify-overrides': cmd_verify_overrides,
+        'init-overrides': cmd_init_overrides,
+        'apply-overrides': cmd_apply_overrides,
     }
     
     return commands[args.command](args)

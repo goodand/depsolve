@@ -33,6 +33,7 @@ from .extensions import (
     EcosystemDetector, load_hybrid_manifest, IgnoreConfig,
     normalize_package_name, get_package_aliases
 )
+from .override_engine import OverrideConfig, OverrideApplicator
 
 
 class DependencyAnalyzer:
@@ -273,7 +274,12 @@ class DependencyAnalyzer:
             verify=self.verify_runtime,
             ignore_config=self.ignore_config
         )
-        return detector.detect()
+        phantoms = detector.detect()
+        
+        # Override 적용
+        config = OverrideConfig.load(self.project)
+        applicator = OverrideApplicator(config)
+        return applicator.apply(phantoms)
     
     def _create_cycle_issue(self, cycle: CycleInfo) -> Issue:
         """순환 이슈 생성"""

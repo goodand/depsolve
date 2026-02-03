@@ -63,6 +63,8 @@ python -m depsolve_ext graph . --mermaid
 
 # 파일 import 추출
 python -m depsolve_ext imports ./src/App.tsx
+
+
 ```
 
 ## Python API

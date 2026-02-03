@@ -136,3 +136,5 @@ cython_debug/
 
 # macOS
 .DS_Store
+
+.history/

@@ -62,6 +62,17 @@ from .reporters import (
 # CLI
 from .cli import main as cli_main
 
+# Override Layer (신규)
+from .override_engine import (
+    OverrideType, OverrideEntry, OverrideConfig, OverrideApplicator,
+    get_known_alias, create_initial_overrides,
+    KNOWN_PYTHON_ALIASES, KNOWN_JS_ALIASES,
+)
+from .override_verifier import (
+    VerificationMethod, VerificationResult, OverrideVerifier,
+    update_overrides_with_verification, generate_verification_report,
+)
+
 __all__ = [
     # Version
     '__version__',
@@ -93,4 +104,11 @@ __all__ = [
     
     # CLI
     'cli_main',
+    
+    # Override Layer
+    'OverrideType', 'OverrideEntry', 'OverrideConfig', 'OverrideApplicator',
+    'get_known_alias', 'create_initial_overrides',
+    'KNOWN_PYTHON_ALIASES', 'KNOWN_JS_ALIASES',
+    'VerificationMethod', 'VerificationResult', 'OverrideVerifier',
+    'update_overrides_with_verification', 'generate_verification_report',
 ]

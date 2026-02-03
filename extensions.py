@@ -1,21 +1,21 @@
 """
 depsolve_ext/extensions.py
 ==========================
-확장 기능: 생태계 인식 Import 패턴, 런타임 검증, 다중 생태계 지원
+í™•ìž¥ ê¸°ëŠ¥: ìƒíƒœê³„ ì¸ì‹ Import íŒ¨í„´, ëŸ°íƒ€ìž„ ê²€ì¦, ë‹¤ì¤‘ ìƒíƒœê³„ ì§€ì›
 
-핵심 기능:
-1. 생태계 인식 Import 추출 (JS/TS, Python 분리)
-2. 완전한 표준 라이브러리 필터링 (Node.js, Python)
-3. 격리된 런타임 검증 (node_modules, site-packages)
-4. 하이브리드 프로젝트 지원 (서브디렉토리 검색)
-5. Ignore 규칙 지원 (정규식 기반)
+í•µì‹¬ ê¸°ëŠ¥:
+1. ìƒíƒœê³„ ì¸ì‹ Import ì¶”ì¶œ (JS/TS, Python ë¶„ë¦¬)
+2. ì™„ì „í•œ í‘œì¤€ ë¼ì´ë¸ŒëŸ¬ë¦¬ í•„í„°ë§ (Node.js, Python)
+3. ê²©ë¦¬ëœ ëŸ°íƒ€ìž„ ê²€ì¦ (node_modules, site-packages)
+4. í•˜ì´ë¸Œë¦¬ë“œ í”„ë¡œì íŠ¸ ì§€ì› (ì„œë¸Œë””ë ‰í† ë¦¬ ê²€ìƒ‰)
+5. Ignore ê·œì¹™ ì§€ì› (ì •ê·œì‹ ê¸°ë°˜)
 
-v0.4.0 개선사항:
-- 서브디렉토리 manifest 검색 (backend/, server/, api/, ...)
-- pyproject.toml 완전 파싱 (PEP 621, Poetry, Flit)
-- requirements-dev.txt 지원
-- Ignore 규칙 시스템
-- 패키지명 정규화 개선 (pydantic-settings ↔ pydantic_settings)
+v0.4.0 ê°œì„ ì‚¬í•­:
+- ì„œë¸Œë””ë ‰í† ë¦¬ manifest ê²€ìƒ‰ (backend/, server/, api/, ...)
+- pyproject.toml ì™„ì „ íŒŒì‹± (PEP 621, Poetry, Flit)
+- requirements-dev.txt ì§€ì›
+- Ignore ê·œì¹™ ì‹œìŠ¤í…œ
+- íŒ¨í‚¤ì§€ëª… ì •ê·œí™” ê°œì„  (pydantic-settings â†” pydantic_settings)
 """
 
 import subprocess
@@ -34,11 +34,11 @@ from .models import (
 
 
 # =============================================================================
-# 표준 라이브러리 (Built-in) 목록
+# í‘œì¤€ ë¼ì´ë¸ŒëŸ¬ë¦¬ (Built-in) ëª©ë¡
 # =============================================================================
 
 NODE_BUILTINS = {
-    # Node.js core modules (완전한 목록)
+    # Node.js core modules (ì™„ì „í•œ ëª©ë¡)
     'assert', 'async_hooks', 'buffer', 'child_process', 'cluster', 'console',
     'constants', 'crypto', 'dgram', 'diagnostics_channel', 'dns', 'domain',
     'events', 'fs', 'http', 'http2', 'https', 'inspector', 'module', 'net',
@@ -47,7 +47,7 @@ NODE_BUILTINS = {
     'tty', 'url', 'util', 'v8', 'vm', 'wasi', 'worker_threads', 'zlib',
 }
 
-# Python 3.8+ 표준 라이브러리 (주요 모듈)
+# Python 3.8+ í‘œì¤€ ë¼ì´ë¸ŒëŸ¬ë¦¬ (ì£¼ìš” ëª¨ë“ˆ)
 PYTHON_STDLIB = {
     'abc', 'aifc', 'argparse', 'array', 'ast', 'asynchat', 'asyncio', 'asyncore',
     'atexit', 'audioop', 'base64', 'bdb', 'binascii', 'binhex', 'bisect',
@@ -93,7 +93,7 @@ GO_STDLIB = {
 
 
 # =============================================================================
-# 확장자 → 생태계 매핑
+# í™•ìž¥ìž â†’ ìƒíƒœê³„ ë§¤í•‘
 # =============================================================================
 
 EXTENSION_ECOSYSTEM_MAP = {
@@ -114,14 +114,14 @@ EXTENSION_ECOSYSTEM_MAP = {
 
 
 def get_file_ecosystem(filepath: str) -> Ecosystem:
-    """파일 경로에서 생태계 추론"""
+    """íŒŒì¼ ê²½ë¡œì—ì„œ ìƒíƒœê³„ ì¶”ë¡ """
     path = Path(filepath)
     ext = path.suffix.lower()
     return EXTENSION_ECOSYSTEM_MAP.get(ext, Ecosystem.UNKNOWN)
 
 
 def is_stdlib(package: str, ecosystem: Ecosystem) -> bool:
-    """해당 생태계의 표준 라이브러리인지 확인"""
+    """í•´ë‹¹ ìƒíƒœê³„ì˜ í‘œì¤€ ë¼ì´ë¸ŒëŸ¬ë¦¬ì¸ì§€ í™•ì¸"""
     base = package.split('.')[0].split('/')[0]
     
     if ecosystem == Ecosystem.JAVASCRIPT:
@@ -138,9 +138,9 @@ def is_stdlib(package: str, ecosystem: Ecosystem) -> bool:
 
 def normalize_package_name(name: str, ecosystem: Ecosystem = Ecosystem.PYTHON) -> str:
     """
-    패키지명 정규화
+    íŒ¨í‚¤ì§€ëª… ì •ê·œí™”
     
-    Python: pydantic-settings → pydantic_settings (PEP 503)
+    Python: pydantic-settings â†’ pydantic_settings (PEP 503)
     """
     if ecosystem == Ecosystem.PYTHON:
         return name.lower().replace('-', '_').replace('.', '_')
@@ -149,17 +149,17 @@ def normalize_package_name(name: str, ecosystem: Ecosystem = Ecosystem.PYTHON) -
 
 def get_package_aliases(name: str, ecosystem: Ecosystem = Ecosystem.PYTHON) -> Set[str]:
     """
-    패키지의 가능한 모든 이름 변형 반환
+    íŒ¨í‚¤ì§€ì˜ ê°€ëŠ¥í•œ ëª¨ë“  ì´ë¦„ ë³€í˜• ë°˜í™˜
     
-    예: pydantic-settings → {pydantic_settings, pydantic-settings, pydanticSettings}
+    ì˜ˆ: pydantic-settings â†’ {pydantic_settings, pydantic-settings, pydanticSettings}
     """
     aliases = {name.lower()}
     
     if ecosystem == Ecosystem.PYTHON:
-        # 하이픈 ↔ 언더스코어 변환
+        # í•˜ì´í”ˆ â†” ì–¸ë”ìŠ¤ì½”ì–´ ë³€í™˜
         aliases.add(name.lower().replace('-', '_'))
         aliases.add(name.lower().replace('_', '-'))
-        # 점 처리
+        # ì  ì²˜ë¦¬
         aliases.add(name.lower().replace('.', '_'))
         aliases.add(name.lower().replace('.', '-'))
     
@@ -167,15 +167,15 @@ def get_package_aliases(name: str, ecosystem: Ecosystem = Ecosystem.PYTHON) -> S
 
 
 # =============================================================================
-# Ignore 규칙 시스템
+# Ignore ê·œì¹™ ì‹œìŠ¤í…œ
 # =============================================================================
 
 @dataclass
 class IgnoreRule:
-    """무시 규칙"""
+    """ë¬´ì‹œ ê·œì¹™"""
     pattern: str
     regex: Optional[Pattern] = None
-    ecosystem: Optional[Ecosystem] = None  # None이면 모든 생태계에 적용
+    ecosystem: Optional[Ecosystem] = None  # Noneì´ë©´ ëª¨ë“  ìƒíƒœê³„ì— ì ìš©
     reason: str = ""
     
     def __post_init__(self):
@@ -183,13 +183,13 @@ class IgnoreRule:
             try:
                 self.regex = re.compile(self.pattern)
             except re.error:
-                # 정규식이 아니면 글로브 패턴으로 변환
+                # ì •ê·œì‹ì´ ì•„ë‹ˆë©´ ê¸€ë¡œë¸Œ íŒ¨í„´ìœ¼ë¡œ ë³€í™˜
                 escaped = re.escape(self.pattern)
                 escaped = escaped.replace(r'\*', '.*').replace(r'\?', '.')
                 self.regex = re.compile(f'^{escaped}$')
     
     def matches(self, package: str, pkg_ecosystem: Ecosystem) -> bool:
-        """패키지가 이 규칙에 매치되는지 확인"""
+        """íŒ¨í‚¤ì§€ê°€ ì´ ê·œì¹™ì— ë§¤ì¹˜ë˜ëŠ”ì§€ í™•ì¸"""
         if self.ecosystem is not None and self.ecosystem != pkg_ecosystem:
             return False
         return bool(self.regex and self.regex.match(package))
@@ -197,10 +197,10 @@ class IgnoreRule:
 
 @dataclass
 class IgnoreConfig:
-    """무시 규칙 설정"""
+    """ë¬´ì‹œ ê·œì¹™ ì„¤ì •"""
     rules: List[IgnoreRule] = field(default_factory=list)
     
-    # 기본 무시 패턴 (스킵할 디렉토리)
+    # ê¸°ë³¸ ë¬´ì‹œ íŒ¨í„´ (ìŠ¤í‚µí•  ë””ë ‰í† ë¦¬)
     skip_dirs: Set[str] = field(default_factory=lambda: {
         'node_modules', '__pycache__', '.git', 'dist', 'build',
         '.history', '.vscode', '.idea', '.cache', '.next', '.nuxt',
@@ -208,30 +208,30 @@ class IgnoreConfig:
         'site-packages', '.claude', '.cursor', '.github', '.gitlab',
     })
     
-    # 기본 무시 패턴 (파일)
+    # ê¸°ë³¸ ë¬´ì‹œ íŒ¨í„´ (íŒŒì¼)
     skip_file_patterns: List[str] = field(default_factory=lambda: [
         r'.*\.min\.js$',
         r'.*\.bundle\.js$',
-        r'.*\.d\.ts$',  # TypeScript 선언 파일
+        r'.*\.d\.ts$',  # TypeScript ì„ ì–¸ íŒŒì¼
     ])
     
     def add_rule(self, pattern: str, ecosystem: Optional[Ecosystem] = None, reason: str = ""):
-        """규칙 추가"""
+        """ê·œì¹™ ì¶”ê°€"""
         self.rules.append(IgnoreRule(pattern=pattern, ecosystem=ecosystem, reason=reason))
     
     def add_skip_dir(self, dir_name: str):
-        """스킵 디렉토리 추가"""
+        """ìŠ¤í‚µ ë””ë ‰í† ë¦¬ ì¶”ê°€"""
         self.skip_dirs.add(dir_name)
     
     def should_ignore_package(self, package: str, ecosystem: Ecosystem) -> Tuple[bool, str]:
-        """패키지를 무시해야 하는지 확인"""
+        """íŒ¨í‚¤ì§€ë¥¼ ë¬´ì‹œí•´ì•¼ í•˜ëŠ”ì§€ í™•ì¸"""
         for rule in self.rules:
             if rule.matches(package, ecosystem):
                 return True, rule.reason or f"Matched ignore rule: {rule.pattern}"
         return False, ""
     
     def should_skip_path(self, path: Path) -> bool:
-        """경로를 스킵해야 하는지 확인"""
+        """ê²½ë¡œë¥¼ ìŠ¤í‚µí•´ì•¼ í•˜ëŠ”ì§€ í™•ì¸"""
         path_parts = set(path.parts)
         if path_parts & self.skip_dirs:
             return True
@@ -245,7 +245,7 @@ class IgnoreConfig:
     
     @classmethod
     def load_from_file(cls, config_path: Path) -> "IgnoreConfig":
-        """설정 파일에서 로드 (.depsolve-ignore 또는 depsolve.config.json)"""
+        """ì„¤ì • íŒŒì¼ì—ì„œ ë¡œë“œ (.depsolve-ignore ë˜ëŠ” depsolve.config.json)"""
         config = cls()
         
         if not config_path.exists():
@@ -273,14 +273,14 @@ class IgnoreConfig:
                     config.add_skip_dir(dir_name)
             
             else:
-                # .depsolve-ignore 형식 (gitignore 스타일)
+                # .depsolve-ignore í˜•ì‹ (gitignore ìŠ¤íƒ€ì¼)
                 content = config_path.read_text()
                 for line in content.split('\n'):
                     line = line.strip()
                     if not line or line.startswith('#'):
                         continue
                     
-                    # [python] 또는 [javascript] 접두사 처리
+                    # [python] ë˜ëŠ” [javascript] ì ‘ë‘ì‚¬ ì²˜ë¦¬
                     eco = None
                     if line.startswith('[') and ']' in line:
                         eco_str, line = line[1:].split(']', 1)
@@ -301,11 +301,11 @@ class IgnoreConfig:
 
 
 # =============================================================================
-# Import 패턴
+# Import íŒ¨í„´
 # =============================================================================
 
 class Patterns:
-    """Import 패턴 정규식"""
+    """Import íŒ¨í„´ ì •ê·œì‹"""
     # JavaScript/TypeScript
     TYPE_IMPORT = re.compile(r'''import\s+type\s+[{}\w\s,*]+\s+from\s+['"]([^'"]+)['"]''')
     EXPORT_FROM = re.compile(r'''export\s+(?:\*|{[^}]*})\s+from\s+['"]([^'"]+)['"]''')
@@ -322,7 +322,7 @@ class Patterns:
     PY_DUNDER_IMPORT = re.compile(r'''__import__\s*\(\s*['"]([^'"]+)['"]''')
     PY_IMPORTLIB = re.compile(r'''import_module\s*\(\s*['"]([^'"]+)['"]''')
     
-    # 파일 컨텍스트 패턴
+    # íŒŒì¼ ì»¨í…ìŠ¤íŠ¸ íŒ¨í„´
     CONFIG_FILES = [
         r".*\.config\.(js|ts|mjs|cjs)$",
         r"(vite|webpack|tailwind|jest|babel)\.config\..*$",
@@ -333,17 +333,17 @@ class Patterns:
 
 
 # =============================================================================
-# 생태계 인식 Import 추출기
+# ìƒíƒœê³„ ì¸ì‹ Import ì¶”ì¶œê¸°
 # =============================================================================
 
 class ImportExtractor:
     """
-    생태계 인식 Import 추출기
+    ìƒíƒœê³„ ì¸ì‹ Import ì¶”ì¶œê¸°
     
-    특징:
-    - 파일 확장자에 따라 다른 패턴 적용
-    - 각 생태계의 표준 라이브러리 자동 필터링
-    - 상대 경로 import 무시
+    íŠ¹ì§•:
+    - íŒŒì¼ í™•ìž¥ìžì— ë”°ë¼ ë‹¤ë¥¸ íŒ¨í„´ ì ìš©
+    - ê° ìƒíƒœê³„ì˜ í‘œì¤€ ë¼ì´ë¸ŒëŸ¬ë¦¬ ìžë™ í•„í„°ë§
+    - ìƒëŒ€ ê²½ë¡œ import ë¬´ì‹œ
     """
     
     def __init__(self, include_types: bool = True, filter_stdlib: bool = True,
@@ -356,7 +356,7 @@ class ImportExtractor:
         self._test_re = [re.compile(p) for p in Patterns.TEST_FILES]
         self._script_re = [re.compile(p) for p in Patterns.SCRIPT_FILES]
         
-        # JS 패턴 우선순위
+        # JS íŒ¨í„´ ìš°ì„ ìˆœìœ„
         self.js_patterns = [
             (Patterns.TYPE_IMPORT, ImportType.TYPE_ONLY, True),
             (Patterns.EXPORT_FROM, ImportType.RE_EXPORT, False),
@@ -369,7 +369,7 @@ class ImportExtractor:
         ]
     
     def extract_file(self, path: Path) -> List[ImportInfo]:
-        """파일에서 import 추출 (생태계 자동 감지)"""
+        """íŒŒì¼ì—ì„œ import ì¶”ì¶œ (ìƒíƒœê³„ ìžë™ ê°ì§€)"""
         if self.ignore_config.should_skip_path(path):
             return []
         
@@ -393,12 +393,12 @@ class ImportExtractor:
         return []
     
     def extract_content(self, content: str, filepath: str = "") -> List[ImportInfo]:
-        """문자열에서 import 추출 (레거시 호환 - JS만)"""
+        """ë¬¸ìžì—´ì—ì„œ import ì¶”ì¶œ (ë ˆê±°ì‹œ í˜¸í™˜ - JSë§Œ)"""
         ctx = self._detect_context(filepath)
         return self._extract_js(content, filepath, ctx)
     
     def _extract_js(self, content: str, filepath: str, ctx: FileContext) -> List[ImportInfo]:
-        """JavaScript/TypeScript import 추출"""
+        """JavaScript/TypeScript import ì¶”ì¶œ"""
         imports: List[ImportInfo] = []
         seen: Set[str] = set()
         
@@ -418,7 +418,7 @@ class ImportExtractor:
                     if self.filter_stdlib and is_stdlib(package, Ecosystem.JAVASCRIPT):
                         continue
                     
-                    # Ignore 규칙 체크
+                    # Ignore ê·œì¹™ ì²´í¬
                     should_ignore, _ = self.ignore_config.should_ignore_package(
                         package, Ecosystem.JAVASCRIPT
                     )
@@ -443,7 +443,7 @@ class ImportExtractor:
         return imports
     
     def _extract_python(self, content: str, filepath: str, ctx: FileContext) -> List[ImportInfo]:
-        """Python import 추출 (AST 기반 - 문자열/주석 안의 import 무시)"""
+        """Python import ì¶”ì¶œ (AST ê¸°ë°˜ - ë¬¸ìžì—´/ì£¼ì„ ì•ˆì˜ import ë¬´ì‹œ)"""
         imports: List[ImportInfo] = []
         seen: Set[str] = set()
         
@@ -463,13 +463,13 @@ class ImportExtractor:
                 
                 # from module import x
                 elif isinstance(node, ast.ImportFrom):
-                    if node.module:  # from . import x는 module이 None
+                    if node.module:  # from . import xëŠ” moduleì´ None
                         self._add_python_import_ast(
                             imports, seen, node.module, filepath,
                             node.lineno, ImportType.FROM_IMPORT, ctx
                         )
         except SyntaxError:
-            # AST 파싱 실패 시 정규식 폴백 (비표준 Python 파일)
+            # AST íŒŒì‹± ì‹¤íŒ¨ ì‹œ ì •ê·œì‹ í´ë°± (ë¹„í‘œì¤€ Python íŒŒì¼)
             pass
         
         return imports
@@ -477,7 +477,7 @@ class ImportExtractor:
     def _add_python_import_ast(self, imports: List[ImportInfo], seen: Set[str],
                                module: str, filepath: str, line_num: int,
                                import_type: ImportType, ctx: FileContext):
-        """Python import 추가 (AST용)"""
+        """Python import ì¶”ê°€ (ASTìš©)"""
         if module.startswith('.'):
             return
         
@@ -486,7 +486,7 @@ class ImportExtractor:
         if self.filter_stdlib and is_stdlib(package, Ecosystem.PYTHON):
             return
         
-        # Ignore 규칙 체크
+        # Ignore ê·œì¹™ ì²´í¬
         should_ignore, _ = self.ignore_config.should_ignore_package(
             package, Ecosystem.PYTHON
         )
@@ -508,7 +508,7 @@ class ImportExtractor:
         ))
     
     def _get_js_package(self, module: str) -> Optional[str]:
-        """JS 모듈에서 패키지명 추출"""
+        """JS ëª¨ë“ˆì—ì„œ íŒ¨í‚¤ì§€ëª… ì¶”ì¶œ"""
         if not module or module.startswith('.') or module.startswith('/'):
             return None
         if module.startswith('node:'):
@@ -525,7 +525,7 @@ class ImportExtractor:
         return base
     
     def _detect_context(self, filepath: str) -> FileContext:
-        """파일 컨텍스트 감지"""
+        """íŒŒì¼ ì»¨í…ìŠ¤íŠ¸ ê°ì§€"""
         fp = filepath.replace('\\', '/')
         fn = fp.split('/')[-1]
         
@@ -543,15 +543,15 @@ class ImportExtractor:
 
 
 # =============================================================================
-# 런타임 검증기
+# ëŸ°íƒ€ìž„ ê²€ì¦ê¸°
 # =============================================================================
 
 class RuntimeVerifier:
     """
-    런타임 검증기 (생태계별 격리)
+    ëŸ°íƒ€ìž„ ê²€ì¦ê¸° (ìƒíƒœê³„ë³„ ê²©ë¦¬)
     
-    JS: node_modules 검증
-    Python: importlib.metadata 검증
+    JS: node_modules ê²€ì¦
+    Python: importlib.metadata ê²€ì¦
     """
     
     def __init__(self, project_path: Path, timeout: int = 30):
@@ -582,11 +582,11 @@ class RuntimeVerifier:
         return self._npm
     
     def verify(self, packages: List[str]) -> Dict[str, ResolveResult]:
-        """패키지 목록 검증 (레거시 호환 - JS)"""
+        """íŒ¨í‚¤ì§€ ëª©ë¡ ê²€ì¦ (ë ˆê±°ì‹œ í˜¸í™˜ - JS)"""
         return self.verify_js(packages)
     
     def verify_js(self, packages: List[str]) -> Dict[str, ResolveResult]:
-        """JS 패키지 검증"""
+        """JS íŒ¨í‚¤ì§€ ê²€ì¦"""
         if not packages:
             return {}
         
@@ -596,7 +596,7 @@ class RuntimeVerifier:
         if not to_check:
             return results
         
-        # Node.js로 배치 검증
+        # Node.jsë¡œ ë°°ì¹˜ ê²€ì¦
         if self.node_available:
             script = """
             const pkgs = %s;
@@ -633,7 +633,7 @@ class RuntimeVerifier:
             except Exception:
                 pass
         
-        # 폴백: node_modules 스캔
+        # í´ë°±: node_modules ìŠ¤ìº”
         for p in to_check:
             if p in results:
                 continue
@@ -648,7 +648,7 @@ class RuntimeVerifier:
         return results
     
     def verify_python(self, packages: List[str]) -> Dict[str, ResolveResult]:
-        """Python 패키지 검증 (별칭 지원)"""
+        """Python íŒ¨í‚¤ì§€ ê²€ì¦ (ë³„ì¹­ ì§€ì›)"""
         results: Dict[str, ResolveResult] = {}
         
         try:
@@ -661,7 +661,7 @@ class RuntimeVerifier:
         for pkg in packages:
             found = False
             
-            # 가능한 모든 패키지명 변형 시도
+            # ê°€ëŠ¥í•œ ëª¨ë“  íŒ¨í‚¤ì§€ëª… ë³€í˜• ì‹œë„
             aliases = get_package_aliases(pkg, Ecosystem.PYTHON)
             
             for alias in aliases:
@@ -681,7 +681,7 @@ class RuntimeVerifier:
         return results
     
     def _scan_node_modules(self, package: str) -> Optional[str]:
-        """node_modules에서 패키지 버전 확인"""
+        """node_modulesì—ì„œ íŒ¨í‚¤ì§€ ë²„ì „ í™•ì¸"""
         nm = self.project / "node_modules"
         if not nm.exists():
             return None
@@ -706,7 +706,7 @@ class RuntimeVerifier:
         return None
     
     def get_multi_versions(self) -> List[MultiVersionPkg]:
-        """다중 버전 설치된 패키지 탐지"""
+        """ë‹¤ì¤‘ ë²„ì „ ì„¤ì¹˜ëœ íŒ¨í‚¤ì§€ íƒì§€"""
         if not self.npm_available:
             return []
         
@@ -753,18 +753,18 @@ class RuntimeVerifier:
 
 
 # =============================================================================
-# Phantom 탐지기
+# Phantom íƒì§€ê¸°
 # =============================================================================
 
 class PhantomDetector:
     """
-    생태계 인식 Phantom 탐지기
+    ìƒíƒœê³„ ì¸ì‹ Phantom íƒì§€ê¸°
     
-    핵심 개선:
-    - JS import → package.json + node_modules 검증
-    - Python import → requirements.txt + site-packages 검증
-    - 생태계 혼재 프로젝트에서 cross-ecosystem 오탐 방지
-    - Ignore 규칙 지원
+    í•µì‹¬ ê°œì„ :
+    - JS import â†’ package.json + node_modules ê²€ì¦
+    - Python import â†’ requirements.txt + site-packages ê²€ì¦
+    - ìƒíƒœê³„ í˜¼ìž¬ í”„ë¡œì íŠ¸ì—ì„œ cross-ecosystem ì˜¤íƒ ë°©ì§€
+    - Ignore ê·œì¹™ ì§€ì›
     """
     
     SKIP_DIRS = [
@@ -788,13 +788,13 @@ class PhantomDetector:
     ):
         self.project = Path(project_path)
         
-        # 레거시 호환: deps를 js_deps로 사용
+        # ë ˆê±°ì‹œ í˜¸í™˜: depsë¥¼ js_depsë¡œ ì‚¬ìš©
         if deps is not None and js_deps is None:
             js_deps = deps
         if dev_deps is not None and js_dev_deps is None:
             js_dev_deps = dev_deps
         
-        # 패키지명 정규화 (모든 변형 포함)
+        # íŒ¨í‚¤ì§€ëª… ì •ê·œí™” (ëª¨ë“  ë³€í˜• í¬í•¨)
         self.js_deps = self._normalize_deps(js_deps or set(), Ecosystem.JAVASCRIPT)
         self.js_dev_deps = self._normalize_deps(js_dev_deps or set(), Ecosystem.JAVASCRIPT)
         self.py_deps = self._normalize_deps(py_deps or set(), Ecosystem.PYTHON)
@@ -805,20 +805,20 @@ class PhantomDetector:
         self.extractor = ImportExtractor(filter_stdlib=True, ignore_config=self.ignore_config)
         self.verifier = RuntimeVerifier(project_path) if verify else None
         
-        # 내부 모듈 스캔 (프로젝트 내 .py 파일명)
+        # ë‚´ë¶€ ëª¨ë“ˆ ìŠ¤ìº” (í”„ë¡œì íŠ¸ ë‚´ .py íŒŒì¼ëª…)
         self._local_py_modules = self._scan_local_modules()
         self._local_js_modules = self._scan_local_js_modules()
     
     def _normalize_deps(self, deps: Set[str], ecosystem: Ecosystem) -> Set[str]:
-        """의존성 목록 정규화 (모든 변형 포함)"""
+        """ì˜ì¡´ì„± ëª©ë¡ ì •ê·œí™” (ëª¨ë“  ë³€í˜• í¬í•¨)"""
         normalized = set()
         for dep in deps:
             normalized.update(get_package_aliases(dep, ecosystem))
         return normalized
     
     def _load_default_ignore_config(self) -> IgnoreConfig:
-        """기본 ignore 설정 로드"""
-        # 프로젝트 루트에서 설정 파일 찾기
+        """ê¸°ë³¸ ignore ì„¤ì • ë¡œë“œ"""
+        # í”„ë¡œì íŠ¸ ë£¨íŠ¸ì—ì„œ ì„¤ì • íŒŒì¼ ì°¾ê¸°
         for config_name in ['.depsolve-ignore', 'depsolve.config.json', '.depsolverc']:
             config_path = self.project / config_name
             if config_path.exists():
@@ -827,25 +827,25 @@ class PhantomDetector:
         return IgnoreConfig()
     
     def _scan_local_modules(self) -> Set[str]:
-        """프로젝트 내부 Python 모듈 스캔"""
+        """í”„ë¡œì íŠ¸ ë‚´ë¶€ Python ëª¨ë“ˆ ìŠ¤ìº”"""
         local_modules: Set[str] = set()
         
         for py_file in self.project.rglob('*.py'):
             if self._should_skip(py_file):
                 continue
-            # 파일명에서 .py 제거
+            # íŒŒì¼ëª…ì—ì„œ .py ì œê±°
             module_name = py_file.stem
             if module_name != '__init__':
                 local_modules.add(module_name.lower())
             
-            # 디렉토리명도 패키지로 간주 (__init__.py가 있으면)
+            # ë””ë ‰í† ë¦¬ëª…ë„ íŒ¨í‚¤ì§€ë¡œ ê°„ì£¼ (__init__.pyê°€ ìžˆìœ¼ë©´)
             if py_file.name == '__init__.py':
                 local_modules.add(py_file.parent.name.lower())
         
         return local_modules
     
     def _scan_local_js_modules(self) -> Set[str]:
-        """프로젝트 내부 JS 모듈 스캔"""
+        """í”„ë¡œì íŠ¸ ë‚´ë¶€ JS ëª¨ë“ˆ ìŠ¤ìº”"""
         local_modules: Set[str] = set()
         js_exts = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs']
         
@@ -859,13 +859,13 @@ class PhantomDetector:
         return local_modules
     
     def detect(self, source_dirs: Optional[List[str]] = None) -> List[PhantomResult]:
-        """Phantom 의존성 탐지"""
+        """Phantom ì˜ì¡´ì„± íƒì§€"""
         source_dirs = source_dirs or ['.', 'src', 'lib', 'app', 'backend', 'server']
         
-        # 1. Import 수집
+        # 1. Import ìˆ˜ì§‘
         all_imports = self._collect_imports(source_dirs)
         
-        # 2. 생태계별 그룹화
+        # 2. ìƒíƒœê³„ë³„ ê·¸ë£¹í™”
         js_imports: Dict[str, List[ImportInfo]] = defaultdict(list)
         py_imports: Dict[str, List[ImportInfo]] = defaultdict(list)
         
@@ -876,16 +876,16 @@ class PhantomDetector:
                 normalized = normalize_package_name(imp.package, Ecosystem.PYTHON)
                 py_imports[normalized].append(imp)
         
-        # 3. 생태계별 Phantom 후보 필터링
+        # 3. ìƒíƒœê³„ë³„ Phantom í›„ë³´ í•„í„°ë§
         candidates: List[PhantomResult] = []
         
         # JS Phantoms
         for pkg, imports in js_imports.items():
-            # 내부 JS 모듈이면 스킵
+            # ë‚´ë¶€ JS ëª¨ë“ˆì´ë©´ ìŠ¤í‚µ
             if pkg in self._local_js_modules:
                 continue
             
-            # 의존성에 있으면 스킵 (정규화된 이름으로 비교)
+            # ì˜ì¡´ì„±ì— ìžˆìœ¼ë©´ ìŠ¤í‚µ (ì •ê·œí™”ëœ ì´ë¦„ìœ¼ë¡œ ë¹„êµ)
             if pkg in self.js_deps or pkg in self.js_dev_deps:
                 continue
             
@@ -905,11 +905,11 @@ class PhantomDetector:
         
         # Python Phantoms
         for pkg, imports in py_imports.items():
-            # 내부 Python 모듈이면 스킵
+            # ë‚´ë¶€ Python ëª¨ë“ˆì´ë©´ ìŠ¤í‚µ
             if pkg in self._local_py_modules:
                 continue
             
-            # 의존성에 있으면 스킵 (정규화된 이름으로 비교)
+            # ì˜ì¡´ì„±ì— ìžˆìœ¼ë©´ ìŠ¤í‚µ (ì •ê·œí™”ëœ ì´ë¦„ìœ¼ë¡œ ë¹„êµ)
             if pkg in self.py_deps or pkg in self.py_dev_deps:
                 continue
             
@@ -920,14 +920,14 @@ class PhantomDetector:
                 ecosystem=Ecosystem.PYTHON
             ))
         
-        # 4. 런타임 검증
+        # 4. ëŸ°íƒ€ìž„ ê²€ì¦
         if self.verify and self.verifier:
             self._verify_candidates(candidates)
         
         return candidates
     
     def _collect_imports(self, dirs: List[str]) -> List[ImportInfo]:
-        """소스 디렉토리에서 import 수집"""
+        """ì†ŒìŠ¤ ë””ë ‰í† ë¦¬ì—ì„œ import ìˆ˜ì§‘"""
         imports: List[ImportInfo] = []
         extensions = list(EXTENSION_ECOSYSTEM_MAP.keys())
         
@@ -946,21 +946,21 @@ class PhantomDetector:
         return imports
     
     def _should_skip(self, path: Path) -> bool:
-        """스킵 여부"""
-        # Ignore config 체크
+        """ìŠ¤í‚µ ì—¬ë¶€"""
+        # Ignore config ì²´í¬
         if self.ignore_config.should_skip_path(path):
             return True
         
-        # 기본 스킵 디렉토리 체크
+        # ê¸°ë³¸ ìŠ¤í‚µ ë””ë ‰í† ë¦¬ ì²´í¬
         path_str = str(path)
         return any(skip_dir in path_str.split('/') for skip_dir in self.SKIP_DIRS)
     
     def _verify_candidates(self, candidates: List[PhantomResult]):
-        """런타임 검증"""
+        """ëŸ°íƒ€ìž„ ê²€ì¦"""
         js_candidates = [c for c in candidates if c.ecosystem == Ecosystem.JAVASCRIPT]
         py_candidates = [c for c in candidates if c.ecosystem == Ecosystem.PYTHON]
         
-        # JS 검증
+        # JS ê²€ì¦
         if js_candidates and self.verifier:
             js_results = self.verifier.verify_js([c.package for c in js_candidates])
             for c in js_candidates:
@@ -970,7 +970,7 @@ class PhantomDetector:
                     c.installed_version = r.version
                     c.reason = f"Installed as transitive (v{r.version})"
         
-        # Python 검증
+        # Python ê²€ì¦
         if py_candidates and self.verifier:
             py_results = self.verifier.verify_python([c.package for c in py_candidates])
             for c in py_candidates:
@@ -982,23 +982,23 @@ class PhantomDetector:
 
 
 # =============================================================================
-# Manifest 로더 (개선됨)
+# Manifest ë¡œë” (ê°œì„ ë¨)
 # =============================================================================
 
 def load_hybrid_manifest(project_path: Path) -> HybridManifest:
     """
-    하이브리드 프로젝트의 모든 manifest 로드
+    í•˜ì´ë¸Œë¦¬ë“œ í”„ë¡œì íŠ¸ì˜ ëª¨ë“  manifest ë¡œë“œ
     
-    개선사항:
-    - 서브디렉토리 검색 (backend/, server/, api/, ...)
-    - requirements-dev.txt 지원
-    - pyproject.toml 완전 파싱 (PEP 621, Poetry, Flit)
-    - 패키지명 정규화
+    ê°œì„ ì‚¬í•­:
+    - ì„œë¸Œë””ë ‰í† ë¦¬ ê²€ìƒ‰ (backend/, server/, api/, ...)
+    - requirements-dev.txt ì§€ì›
+    - pyproject.toml ì™„ì „ íŒŒì‹± (PEP 621, Poetry, Flit)
+    - íŒ¨í‚¤ì§€ëª… ì •ê·œí™”
     """
     manifest = HybridManifest()
     project = Path(project_path)
     
-    # 검색할 후보 디렉토리 (루트 + 서브디렉토리)
+    # ê²€ìƒ‰í•  í›„ë³´ ë””ë ‰í† ë¦¬ (ë£¨íŠ¸ + ì„œë¸Œë””ë ‰í† ë¦¬)
     search_dirs = [project]
     for subdir in ['backend', 'server', 'api', 'src', 'app', 'lib', 'packages']:
         candidate = project / subdir
@@ -1016,7 +1016,7 @@ def load_hybrid_manifest(project_path: Path) -> HybridManifest:
 
 
 def _load_npm_manifest(directory: Path, manifest: HybridManifest):
-    """package.json 로드"""
+    """package.json ë¡œë“œ"""
     pkg_json = directory / "package.json"
     if not pkg_json.exists():
         return
@@ -1033,8 +1033,8 @@ def _load_npm_manifest(directory: Path, manifest: HybridManifest):
 
 
 def _load_pip_manifest(directory: Path, manifest: HybridManifest):
-    """requirements.txt 및 requirements-dev.txt 로드"""
-    # 메인 requirements
+    """requirements.txt ë° requirements-dev.txt ë¡œë“œ"""
+    # ë©”ì¸ requirements
     for req_file in ['requirements.txt', 'requirements.in']:
         req_path = directory / req_file
         if req_path.exists():
@@ -1053,21 +1053,21 @@ def _load_pip_manifest(directory: Path, manifest: HybridManifest):
 
 
 def _parse_requirements_txt(path: Path, deps_set: Set[str]):
-    """requirements.txt 파싱"""
+    """requirements.txt íŒŒì‹±"""
     try:
         content = path.read_text()
         for line in content.split('\n'):
             line = line.strip()
             
-            # 빈 줄, 주석, 옵션 무시
+            # ë¹ˆ ì¤„, ì£¼ì„, ì˜µì…˜ ë¬´ì‹œ
             if not line or line.startswith('#') or line.startswith('-'):
                 continue
             
-            # URL 형식 무시 (git+https://... 등)
+            # URL í˜•ì‹ ë¬´ì‹œ (git+https://... ë“±)
             if '://' in line or line.startswith('git+'):
                 continue
             
-            # 버전 명시자 분리
+            # ë²„ì „ ëª…ì‹œìž ë¶„ë¦¬
             for sep in ['==', '>=', '<=', '~=', '!=', '>', '<', '[', '@', ';']:
                 if sep in line:
                     line = line.split(sep)[0]
@@ -1082,9 +1082,9 @@ def _parse_requirements_txt(path: Path, deps_set: Set[str]):
 
 def _load_pyproject_toml(directory: Path, manifest: HybridManifest):
     """
-    pyproject.toml 완전 파싱
+    pyproject.toml ì™„ì „ íŒŒì‹±
     
-    지원 형식:
+    ì§€ì› í˜•ì‹:
     - PEP 621 (project.dependencies)
     - Poetry ([tool.poetry.dependencies])
     - Flit ([tool.flit.metadata])
@@ -1097,10 +1097,10 @@ def _load_pyproject_toml(directory: Path, manifest: HybridManifest):
     try:
         content = pyproject.read_text()
         
-        # 1. PEP 621 스타일: [project] dependencies = [...]
+        # 1. PEP 621 ìŠ¤íƒ€ì¼: [project] dependencies = [...]
         _parse_pep621_deps(content, manifest)
         
-        # 2. Poetry 스타일: [tool.poetry.dependencies]
+        # 2. Poetry ìŠ¤íƒ€ì¼: [tool.poetry.dependencies]
         _parse_poetry_deps(content, manifest)
         
         if Ecosystem.PYTHON not in manifest.detected_ecosystems:
@@ -1111,7 +1111,7 @@ def _load_pyproject_toml(directory: Path, manifest: HybridManifest):
 
 
 def _parse_pep621_deps(content: str, manifest: HybridManifest):
-    """PEP 621 형식 파싱"""
+    """PEP 621 í˜•ì‹ íŒŒì‹±"""
     # dependencies = ["pkg1", "pkg2>=1.0"]
     deps_match = re.search(
         r'\[project\].*?dependencies\s*=\s*\[(.*?)\]',
@@ -1140,7 +1140,7 @@ def _parse_pep621_deps(content: str, manifest: HybridManifest):
 
 
 def _parse_poetry_deps(content: str, manifest: HybridManifest):
-    """Poetry 형식 파싱"""
+    """Poetry í˜•ì‹ íŒŒì‹±"""
     # [tool.poetry.dependencies]
     poetry_deps_match = re.search(
         r'\[tool\.poetry\.dependencies\](.*?)(?=\n\[|\Z)',
@@ -1158,7 +1158,7 @@ def _parse_poetry_deps(content: str, manifest: HybridManifest):
                 if pkg and pkg.lower() != 'python':
                     manifest.py_deps.add(pkg)
     
-    # [tool.poetry.group.dev.dependencies] 또는 [tool.poetry.dev-dependencies]
+    # [tool.poetry.group.dev.dependencies] ë˜ëŠ” [tool.poetry.dev-dependencies]
     for pattern in [
         r'\[tool\.poetry\.group\.dev\.dependencies\](.*?)(?=\n\[|\Z)',
         r'\[tool\.poetry\.dev-dependencies\](.*?)(?=\n\[|\Z)',
@@ -1177,7 +1177,7 @@ def _parse_poetry_deps(content: str, manifest: HybridManifest):
 
 
 def _load_go_manifest(directory: Path, manifest: HybridManifest):
-    """go.mod 로드"""
+    """go.mod ë¡œë“œ"""
     go_mod = directory / "go.mod"
     if not go_mod.exists():
         return
@@ -1205,7 +1205,7 @@ def _load_go_manifest(directory: Path, manifest: HybridManifest):
 
 
 def _load_cargo_manifest(directory: Path, manifest: HybridManifest):
-    """Cargo.toml 로드"""
+    """Cargo.toml ë¡œë“œ"""
     cargo_toml = directory / "Cargo.toml"
     if not cargo_toml.exists():
         return
@@ -1213,7 +1213,7 @@ def _load_cargo_manifest(directory: Path, manifest: HybridManifest):
     try:
         content = cargo_toml.read_text()
         
-        # [dependencies] 섹션
+        # [dependencies] ì„¹ì…˜
         deps_match = re.search(
             r'\[dependencies\](.*?)(?=\n\[|\Z)',
             content, re.DOTALL
@@ -1237,11 +1237,11 @@ def _load_cargo_manifest(directory: Path, manifest: HybridManifest):
 
 
 # =============================================================================
-# 다중 생태계 어댑터 (레거시 호환)
+# ë‹¤ì¤‘ ìƒíƒœê³„ ì–´ëŒ‘í„° (ë ˆê±°ì‹œ í˜¸í™˜)
 # =============================================================================
 
 class GoAdapter:
-    """Go 생태계 어댑터"""
+    """Go ìƒíƒœê³„ ì–´ëŒ‘í„°"""
     
     def __init__(self, project_path: Path):
         self.project = Path(project_path)
@@ -1274,7 +1274,7 @@ class GoAdapter:
 
 
 class CargoAdapter:
-    """Rust/Cargo 생태계 어댑터"""
+    """Rust/Cargo ìƒíƒœê³„ ì–´ëŒ‘í„°"""
     
     def __init__(self, project_path: Path):
         self.project = Path(project_path)
@@ -1338,7 +1338,7 @@ class CargoAdapter:
 
 
 class EcosystemDetector:
-    """생태계 자동 감지기"""
+    """ìƒíƒœê³„ ìžë™ ê°ì§€ê¸°"""
     
     ADAPTERS = [GoAdapter, CargoAdapter]
     

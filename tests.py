@@ -2,9 +2,9 @@
 """
 depsolve_ext/tests.py
 =====================
-통합 테스트
+í†µí•© í…ŒìŠ¤íŠ¸
 
-실행:
+ì‹¤í–‰:
     python -m pytest tests.py -v
     python tests.py
 """
@@ -31,10 +31,10 @@ from .analyzer import DependencyAnalyzer, analyze
 
 
 class TestGraph(unittest.TestCase):
-    """그래프 테스트"""
+    """ê·¸ëž˜í”„ í…ŒìŠ¤íŠ¸"""
     
     def test_add_nodes_edges(self):
-        """노드/엣지 추가"""
+        """ë…¸ë“œ/ì—£ì§€ ì¶”ê°€"""
         g = DependencyGraph()
         g.add_node("A", "1.0.0")
         g.add_edge(DependencyEdge(source="A", target="B", version_range="^2.0.0"))
@@ -45,7 +45,7 @@ class TestGraph(unittest.TestCase):
         self.assertTrue(g.has_edge("A", "B"))
     
     def test_find_cycles(self):
-        """순환 탐지"""
+        """ìˆœí™˜ íƒì§€"""
         g = DependencyGraph()
         g.add_edge(DependencyEdge(source="A", target="B"))
         g.add_edge(DependencyEdge(source="B", target="C"))
@@ -56,7 +56,7 @@ class TestGraph(unittest.TestCase):
         self.assertEqual(set(cycles[0].path[:-1]), {"A", "B", "C"})
     
     def test_no_cycle(self):
-        """순환 없음"""
+        """ìˆœí™˜ ì—†ìŒ"""
         g = DependencyGraph()
         g.add_edge(DependencyEdge(source="A", target="B"))
         g.add_edge(DependencyEdge(source="B", target="C"))
@@ -64,7 +64,7 @@ class TestGraph(unittest.TestCase):
         self.assertFalse(g.has_cycle())
     
     def test_find_diamonds(self):
-        """다이아몬드 탐지"""
+        """ë‹¤ì´ì•„ëª¬ë“œ íƒì§€"""
         g = DependencyGraph()
         g.add_edge(DependencyEdge(source="A", target="B"))
         g.add_edge(DependencyEdge(source="A", target="C"))
@@ -77,7 +77,7 @@ class TestGraph(unittest.TestCase):
         self.assertTrue(diamonds[0].has_version_conflict)
     
     def test_mermaid_output(self):
-        """Mermaid 출력"""
+        """Mermaid ì¶œë ¥"""
         g = DependencyGraph()
         g.add_edge(DependencyEdge(source="A", target="B", version_range="^1.0.0"))
         
@@ -86,7 +86,7 @@ class TestGraph(unittest.TestCase):
         self.assertIn("-->", mermaid)
     
     def test_transitive_deps(self):
-        """전이적 의존성"""
+        """ì „ì´ì  ì˜ì¡´ì„±"""
         g = DependencyGraph()
         g.add_edge(DependencyEdge(source="A", target="B"))
         g.add_edge(DependencyEdge(source="B", target="C"))
@@ -97,29 +97,29 @@ class TestGraph(unittest.TestCase):
 
 
 class TestEcosystemDetection(unittest.TestCase):
-    """생태계 감지 테스트"""
+    """ìƒíƒœê³„ ê°ì§€ í…ŒìŠ¤íŠ¸"""
     
     def test_js_extensions(self):
-        """JS/TS 확장자 감지"""
+        """JS/TS í™•ìž¥ìž ê°ì§€"""
         self.assertEqual(get_file_ecosystem("app.js"), Ecosystem.JAVASCRIPT)
         self.assertEqual(get_file_ecosystem("App.tsx"), Ecosystem.JAVASCRIPT)
         self.assertEqual(get_file_ecosystem("index.mjs"), Ecosystem.JAVASCRIPT)
     
     def test_python_extensions(self):
-        """Python 확장자 감지"""
+        """Python í™•ìž¥ìž ê°ì§€"""
         self.assertEqual(get_file_ecosystem("main.py"), Ecosystem.PYTHON)
         self.assertEqual(get_file_ecosystem("utils.pyx"), Ecosystem.PYTHON)
     
     def test_unknown_extensions(self):
-        """알 수 없는 확장자"""
+        """ì•Œ ìˆ˜ ì—†ëŠ” í™•ìž¥ìž"""
         self.assertEqual(get_file_ecosystem("readme.md"), Ecosystem.UNKNOWN)
 
 
 class TestStdlibFiltering(unittest.TestCase):
-    """표준 라이브러리 필터링 테스트"""
+    """í‘œì¤€ ë¼ì´ë¸ŒëŸ¬ë¦¬ í•„í„°ë§ í…ŒìŠ¤íŠ¸"""
     
     def test_node_builtins(self):
-        """Node.js 내장 모듈"""
+        """Node.js ë‚´ìž¥ ëª¨ë“ˆ"""
         self.assertTrue(is_stdlib('fs', Ecosystem.JAVASCRIPT))
         self.assertTrue(is_stdlib('https', Ecosystem.JAVASCRIPT))
         self.assertTrue(is_stdlib('path', Ecosystem.JAVASCRIPT))
@@ -129,7 +129,7 @@ class TestStdlibFiltering(unittest.TestCase):
         self.assertFalse(is_stdlib('react', Ecosystem.JAVASCRIPT))
     
     def test_python_stdlib(self):
-        """Python 표준 라이브러리"""
+        """Python í‘œì¤€ ë¼ì´ë¸ŒëŸ¬ë¦¬"""
         self.assertTrue(is_stdlib('os', Ecosystem.PYTHON))
         self.assertTrue(is_stdlib('sys', Ecosystem.PYTHON))
         self.assertTrue(is_stdlib('json', Ecosystem.PYTHON))
@@ -140,43 +140,43 @@ class TestStdlibFiltering(unittest.TestCase):
 
 
 class TestPackageNameNormalization(unittest.TestCase):
-    """패키지명 정규화 테스트"""
+    """íŒ¨í‚¤ì§€ëª… ì •ê·œí™” í…ŒìŠ¤íŠ¸"""
     
     def test_hyphen_to_underscore(self):
-        """하이픈 → 언더스코어"""
+        """í•˜ì´í”ˆ â†’ ì–¸ë”ìŠ¤ì½”ì–´"""
         self.assertEqual(normalize_package_name("pydantic-settings"), "pydantic_settings")
         self.assertEqual(normalize_package_name("scikit-learn"), "scikit_learn")
     
     def test_already_normalized(self):
-        """이미 정규화된 이름"""
+        """ì´ë¯¸ ì •ê·œí™”ëœ ì´ë¦„"""
         self.assertEqual(normalize_package_name("pydantic_settings"), "pydantic_settings")
         self.assertEqual(normalize_package_name("requests"), "requests")
     
     def test_case_normalization(self):
-        """대소문자 정규화"""
+        """ëŒ€ì†Œë¬¸ìž ì •ê·œí™”"""
         self.assertEqual(normalize_package_name("PyYAML"), "pyyaml")
         self.assertEqual(normalize_package_name("Flask"), "flask")
     
     def test_dot_handling(self):
-        """점 처리"""
+        """ì  ì²˜ë¦¬"""
         self.assertEqual(normalize_package_name("zope.interface"), "zope_interface")
     
     def test_get_aliases(self):
-        """별칭 생성"""
+        """ë³„ì¹­ ìƒì„±"""
         aliases = get_package_aliases("pydantic-settings")
         self.assertIn("pydantic-settings", aliases)
         self.assertIn("pydantic_settings", aliases)
         
-        # 이미 정규화된 이름
+        # ì´ë¯¸ ì •ê·œí™”ëœ ì´ë¦„
         aliases2 = get_package_aliases("requests")
         self.assertEqual(aliases2, {"requests"})
 
 
 class TestIgnoreConfig(unittest.TestCase):
-    """Ignore 규칙 테스트"""
+    """Ignore ê·œì¹™ í…ŒìŠ¤íŠ¸"""
     
     def test_basic_rule(self):
-        """기본 규칙"""
+        """ê¸°ë³¸ ê·œì¹™"""
         config = IgnoreConfig()
         config.add_rule("pytest")
         
@@ -186,9 +186,9 @@ class TestIgnoreConfig(unittest.TestCase):
         self.assertFalse(ignored)
     
     def test_regex_rule(self):
-        """정규식 규칙 (와일드카드)"""
+        """ì •ê·œì‹ ê·œì¹™ (ì™€ì¼ë“œì¹´ë“œ)"""
         config = IgnoreConfig()
-        config.add_rule("mypy*")  # 글로브 패턴 → 정규식으로 변환됨
+        config.add_rule("mypy*")  # ê¸€ë¡œë¸Œ íŒ¨í„´ â†’ ì •ê·œì‹ìœ¼ë¡œ ë³€í™˜ë¨
         
         ignored, _ = config.should_ignore_package("mypy", Ecosystem.PYTHON)
         self.assertTrue(ignored)
@@ -198,7 +198,7 @@ class TestIgnoreConfig(unittest.TestCase):
         self.assertFalse(ignored)
     
     def test_ecosystem_specific_rule(self):
-        """생태계별 규칙"""
+        """ìƒíƒœê³„ë³„ ê·œì¹™"""
         config = IgnoreConfig()
         config.add_rule("pytest", ecosystem=Ecosystem.PYTHON)
         
@@ -208,7 +208,7 @@ class TestIgnoreConfig(unittest.TestCase):
         self.assertFalse(ignored)
     
     def test_skip_dirs(self):
-        """스킵 디렉토리"""
+        """ìŠ¤í‚µ ë””ë ‰í† ë¦¬"""
         config = IgnoreConfig()
         config.add_skip_dir(".mypy_cache")
         
@@ -216,14 +216,14 @@ class TestIgnoreConfig(unittest.TestCase):
         self.assertFalse(config.should_skip_path(Path("/project/src/file.py")))
     
     def test_load_from_file(self):
-        """파일에서 로드"""
+        """íŒŒì¼ì—ì„œ ë¡œë“œ"""
         with tempfile.TemporaryDirectory() as tmpdir:
             project = Path(tmpdir)
             
-            # .depsolve-ignore 파일 생성
+            # .depsolve-ignore íŒŒì¼ ìƒì„±
             ignore_file = project / ".depsolve-ignore"
             ignore_file.write_text("""
-# 테스트 도구
+# í…ŒìŠ¤íŠ¸ ë„êµ¬
 pytest
 mypy
 [python] black
@@ -242,7 +242,7 @@ mypy
             self.assertFalse(ignored)
     
     def test_load_json_config(self):
-        """JSON 설정 로드"""
+        """JSON ì„¤ì • ë¡œë“œ"""
         with tempfile.TemporaryDirectory() as tmpdir:
             project = Path(tmpdir)
             
@@ -265,13 +265,13 @@ mypy
 
 
 class TestImportExtractor(unittest.TestCase):
-    """Import 추출 테스트"""
+    """Import ì¶”ì¶œ í…ŒìŠ¤íŠ¸"""
     
     def setUp(self):
         self.extractor = ImportExtractor()
     
     def test_static_import(self):
-        """기본 import"""
+        """ê¸°ë³¸ import"""
         imports = self.extractor.extract_content("import React from 'react';")
         self.assertEqual(len(imports), 1)
         self.assertEqual(imports[0].package, "react")
@@ -301,34 +301,34 @@ class TestImportExtractor(unittest.TestCase):
         self.assertEqual(imports[0].import_type, ImportType.JEST_MOCK)
     
     def test_scoped_package(self):
-        """Scoped 패키지"""
+        """Scoped íŒ¨í‚¤ì§€"""
         imports = self.extractor.extract_content("import { x } from '@babel/core';")
         self.assertEqual(imports[0].package, "@babel/core")
     
     def test_node_builtin_ignored(self):
-        """Node.js 내장 모듈 무시"""
+        """Node.js ë‚´ìž¥ ëª¨ë“ˆ ë¬´ì‹œ"""
         imports = self.extractor.extract_content("import fs from 'fs';")
         self.assertEqual(len(imports), 0)
     
     def test_node_https_ignored(self):
-        """Node.js https 모듈 무시 (핵심 수정 검증)"""
+        """Node.js https ëª¨ë“ˆ ë¬´ì‹œ (í•µì‹¬ ìˆ˜ì • ê²€ì¦)"""
         imports = self.extractor.extract_content("import https from 'https';")
         self.assertEqual(len(imports), 0)
     
     def test_file_context_config(self):
-        """파일 컨텍스트 - config"""
+        """íŒŒì¼ ì»¨í…ìŠ¤íŠ¸ - config"""
         imports = self.extractor.extract_content(
             "import x from 'pkg';", "vite.config.ts")
         self.assertEqual(imports[0].file_context, FileContext.CONFIG)
     
     def test_file_context_test(self):
-        """파일 컨텍스트 - test"""
+        """íŒŒì¼ ì»¨í…ìŠ¤íŠ¸ - test"""
         imports = self.extractor.extract_content(
             "import x from 'pkg';", "App.test.tsx")
         self.assertEqual(imports[0].file_context, FileContext.TEST)
     
     def test_with_ignore_config(self):
-        """Ignore 설정과 함께"""
+        """Ignore ì„¤ì •ê³¼ í•¨ê»˜"""
         config = IgnoreConfig()
         config.add_rule("axios")
         
@@ -338,13 +338,13 @@ class TestImportExtractor(unittest.TestCase):
 
 
 class TestPythonImportExtraction(unittest.TestCase):
-    """Python Import 추출 테스트"""
+    """Python Import ì¶”ì¶œ í…ŒìŠ¤íŠ¸"""
     
     def setUp(self):
         self.extractor = ImportExtractor(filter_stdlib=True)
     
     def test_import_statement(self):
-        """기본 import 문"""
+        """ê¸°ë³¸ import ë¬¸"""
         with tempfile.NamedTemporaryFile(suffix='.py', mode='w', delete=False) as f:
             f.write("import requests\nimport numpy as np\n")
             f.flush()
@@ -355,7 +355,7 @@ class TestPythonImportExtraction(unittest.TestCase):
             self.assertIn('numpy', packages)
     
     def test_from_import(self):
-        """from ... import 문"""
+        """from ... import ë¬¸"""
         with tempfile.NamedTemporaryFile(suffix='.py', mode='w', delete=False) as f:
             f.write("from pandas import DataFrame\n")
             f.flush()
@@ -365,7 +365,7 @@ class TestPythonImportExtraction(unittest.TestCase):
             self.assertIn('pandas', packages)
     
     def test_stdlib_filtered(self):
-        """Python 표준 라이브러리 필터링"""
+        """Python í‘œì¤€ ë¼ì´ë¸ŒëŸ¬ë¦¬ í•„í„°ë§"""
         with tempfile.NamedTemporaryFile(suffix='.py', mode='w', delete=False) as f:
             f.write("import os\nimport sys\nimport json\n")
             f.flush()
@@ -375,10 +375,10 @@ class TestPythonImportExtraction(unittest.TestCase):
 
 
 class TestHybridManifest(unittest.TestCase):
-    """하이브리드 Manifest 테스트"""
+    """í•˜ì´ë¸Œë¦¬ë“œ Manifest í…ŒìŠ¤íŠ¸"""
     
     def test_npm_only(self):
-        """npm 프로젝트"""
+        """npm í”„ë¡œì íŠ¸"""
         with tempfile.TemporaryDirectory() as tmpdir:
             project = Path(tmpdir)
             (project / "package.json").write_text(json.dumps({
@@ -391,7 +391,7 @@ class TestHybridManifest(unittest.TestCase):
             self.assertIn("react", manifest.js_deps)
     
     def test_python_only(self):
-        """Python 프로젝트"""
+        """Python í”„ë¡œì íŠ¸"""
         with tempfile.TemporaryDirectory() as tmpdir:
             project = Path(tmpdir)
             (project / "requirements.txt").write_text("requests>=2.28.0\n")
@@ -401,7 +401,7 @@ class TestHybridManifest(unittest.TestCase):
             self.assertIn("requests", manifest.py_deps)
     
     def test_hybrid_project(self):
-        """하이브리드 프로젝트"""
+        """í•˜ì´ë¸Œë¦¬ë“œ í”„ë¡œì íŠ¸"""
         with tempfile.TemporaryDirectory() as tmpdir:
             project = Path(tmpdir)
             (project / "package.json").write_text(json.dumps({
@@ -414,16 +414,16 @@ class TestHybridManifest(unittest.TestCase):
             self.assertIn(Ecosystem.PYTHON, manifest.detected_ecosystems)
     
     def test_subdirectory_manifest(self):
-        """서브디렉토리 manifest 탐지"""
+        """ì„œë¸Œë””ë ‰í† ë¦¬ manifest íƒì§€"""
         with tempfile.TemporaryDirectory() as tmpdir:
             project = Path(tmpdir)
             
-            # 루트에 package.json
+            # ë£¨íŠ¸ì— package.json
             (project / "package.json").write_text(json.dumps({
                 "dependencies": {"react": "^18.0.0"}
             }))
             
-            # backend/ 서브디렉토리에 requirements.txt
+            # backend/ ì„œë¸Œë””ë ‰í† ë¦¬ì— requirements.txt
             backend = project / "backend"
             backend.mkdir()
             (backend / "requirements.txt").write_text("fastapi>=0.100.0\npydantic>=2.0\n")
@@ -435,7 +435,7 @@ class TestHybridManifest(unittest.TestCase):
             self.assertIn("pydantic", manifest.py_deps)
     
     def test_pyproject_toml_pep621(self):
-        """pyproject.toml PEP 621 파싱"""
+        """pyproject.toml PEP 621 íŒŒì‹±"""
         with tempfile.TemporaryDirectory() as tmpdir:
             project = Path(tmpdir)
             
@@ -462,7 +462,7 @@ dev = [
             self.assertIn("black", manifest.py_dev_deps)
     
     def test_pyproject_toml_poetry(self):
-        """pyproject.toml Poetry 파싱"""
+        """pyproject.toml Poetry íŒŒì‹±"""
         with tempfile.TemporaryDirectory() as tmpdir:
             project = Path(tmpdir)
             
@@ -483,11 +483,11 @@ pytest = "^7.0"
             
             self.assertIn("fastapi", manifest.py_deps)
             self.assertIn("pydantic", manifest.py_deps)
-            # python은 제외되어야 함
+            # pythonì€ ì œì™¸ë˜ì–´ì•¼ í•¨
             self.assertNotIn("python", manifest.py_deps)
     
     def test_requirements_dev_txt(self):
-        """requirements-dev.txt 지원"""
+        """requirements-dev.txt ì§€ì›"""
         with tempfile.TemporaryDirectory() as tmpdir:
             project = Path(tmpdir)
             
@@ -501,7 +501,7 @@ pytest = "^7.0"
             self.assertIn("mypy", manifest.py_dev_deps)
     
     def test_package_name_normalization(self):
-        """패키지명 정규화 (별칭 포함)"""
+        """íŒ¨í‚¤ì§€ëª… ì •ê·œí™” (ë³„ì¹­ í¬í•¨)"""
         with tempfile.TemporaryDirectory() as tmpdir:
             project = Path(tmpdir)
             
@@ -509,7 +509,7 @@ pytest = "^7.0"
             
             manifest = load_hybrid_manifest(project)
             
-            # 둘 다 포함되어야 함
+            # ë‘˜ ë‹¤ í¬í•¨ë˜ì–´ì•¼ í•¨
             self.assertTrue(
                 "pydantic-settings" in manifest.py_deps or 
                 "pydantic_settings" in manifest.py_deps
@@ -517,10 +517,10 @@ pytest = "^7.0"
 
 
 class TestPhantomDetection(unittest.TestCase):
-    """Phantom 탐지 테스트"""
+    """Phantom íƒì§€ í…ŒìŠ¤íŠ¸"""
     
     def test_js_phantom(self):
-        """JS Phantom 탐지"""
+        """JS Phantom íƒì§€"""
         with tempfile.TemporaryDirectory() as tmpdir:
             project = Path(tmpdir)
             (project / "package.json").write_text(json.dumps({
@@ -548,7 +548,7 @@ class TestPhantomDetection(unittest.TestCase):
             self.assertNotIn("react", phantom_packages)
     
     def test_python_phantom(self):
-        """Python Phantom 탐지"""
+        """Python Phantom íƒì§€"""
         with tempfile.TemporaryDirectory() as tmpdir:
             project = Path(tmpdir)
             (project / "requirements.txt").write_text("requests>=2.28.0\n")
@@ -574,7 +574,7 @@ class TestPhantomDetection(unittest.TestCase):
             self.assertNotIn("requests", phantom_packages)
     
     def test_ecosystem_isolation(self):
-        """생태계 격리 - JS import가 Python deps로 검증되지 않음"""
+        """ìƒíƒœê³„ ê²©ë¦¬ - JS importê°€ Python depsë¡œ ê²€ì¦ë˜ì§€ ì•ŠìŒ"""
         with tempfile.TemporaryDirectory() as tmpdir:
             project = Path(tmpdir)
             (project / "requirements.txt").write_text("openai>=1.0.0\n")
@@ -598,14 +598,14 @@ class TestPhantomDetection(unittest.TestCase):
             self.assertTrue(js_phantoms[0].is_phantom)
     
     def test_normalized_package_matching(self):
-        """정규화된 패키지명 매칭"""
+        """ì •ê·œí™”ëœ íŒ¨í‚¤ì§€ëª… ë§¤ì¹­"""
         with tempfile.TemporaryDirectory() as tmpdir:
             project = Path(tmpdir)
             (project / "requirements.txt").write_text("pydantic-settings>=2.0\n")
             
             src = project / "src"
             src.mkdir()
-            # import는 언더스코어로
+            # importëŠ” ì–¸ë”ìŠ¤ì½”ì–´ë¡œ
             (src / "main.py").write_text("from pydantic_settings import BaseSettings\n")
             
             detector = PhantomDetector(
@@ -618,19 +618,19 @@ class TestPhantomDetection(unittest.TestCase):
             py_phantoms = [p for p in phantoms if p.ecosystem == Ecosystem.PYTHON]
             phantom_packages = {p.package for p in py_phantoms}
             
-            # pydantic_settings는 Phantom이 아니어야 함
+            # pydantic_settingsëŠ” Phantomì´ ì•„ë‹ˆì–´ì•¼ í•¨
             self.assertNotIn("pydantic_settings", phantom_packages)
 
 
 class TestRuntimeVerifier(unittest.TestCase):
-    """런타임 검증 테스트"""
+    """ëŸ°íƒ€ìž„ ê²€ì¦ í…ŒìŠ¤íŠ¸"""
     
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
         self.project = Path(self.temp_dir)
     
     def test_node_modules_scan(self):
-        """node_modules 스캔"""
+        """node_modules ìŠ¤ìº”"""
         nm = self.project / "node_modules" / "lodash"
         nm.mkdir(parents=True)
         (nm / "package.json").write_text(json.dumps({
@@ -642,7 +642,7 @@ class TestRuntimeVerifier(unittest.TestCase):
         self.assertEqual(version, "4.17.21")
     
     def test_scoped_package_scan(self):
-        """Scoped 패키지 스캔"""
+        """Scoped íŒ¨í‚¤ì§€ ìŠ¤ìº”"""
         nm = self.project / "node_modules" / "@babel" / "core"
         nm.mkdir(parents=True)
         (nm / "package.json").write_text(json.dumps({
@@ -655,14 +655,14 @@ class TestRuntimeVerifier(unittest.TestCase):
 
 
 class TestGoAdapter(unittest.TestCase):
-    """Go 어댑터 테스트"""
+    """Go ì–´ëŒ‘í„° í…ŒìŠ¤íŠ¸"""
     
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
         self.project = Path(self.temp_dir)
     
     def test_detect(self):
-        """Go 프로젝트 감지"""
+        """Go í”„ë¡œì íŠ¸ ê°ì§€"""
         adapter = GoAdapter(self.project)
         self.assertFalse(adapter.detect())
         
@@ -670,7 +670,7 @@ class TestGoAdapter(unittest.TestCase):
         self.assertTrue(adapter.detect())
     
     def test_parse_go_mod(self):
-        """go.mod 파싱"""
+        """go.mod íŒŒì‹±"""
         (self.project / "go.mod").write_text("""
 module github.com/user/myproject
 
@@ -688,14 +688,14 @@ require (
 
 
 class TestCargoAdapter(unittest.TestCase):
-    """Cargo 어댑터 테스트"""
+    """Cargo ì–´ëŒ‘í„° í…ŒìŠ¤íŠ¸"""
     
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
         self.project = Path(self.temp_dir)
     
     def test_detect(self):
-        """Cargo 프로젝트 감지"""
+        """Cargo í”„ë¡œì íŠ¸ ê°ì§€"""
         adapter = CargoAdapter(self.project)
         self.assertFalse(adapter.detect())
         
@@ -706,14 +706,14 @@ class TestCargoAdapter(unittest.TestCase):
 
 
 class TestAnalyzer(unittest.TestCase):
-    """분석기 테스트"""
+    """ë¶„ì„ê¸° í…ŒìŠ¤íŠ¸"""
     
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
         self.project = Path(self.temp_dir)
     
     def test_npm_analysis(self):
-        """npm 프로젝트 분석"""
+        """npm í”„ë¡œì íŠ¸ ë¶„ì„"""
         (self.project / "package.json").write_text(json.dumps({
             "name": "test-project",
             "dependencies": {"react": "^18.0.0", "lodash": "^4.17.0"},
@@ -738,10 +738,10 @@ class TestAnalyzer(unittest.TestCase):
 
 
 class TestIntegration(unittest.TestCase):
-    """통합 테스트"""
+    """í†µí•© í…ŒìŠ¤íŠ¸"""
     
     def test_full_workflow(self):
-        """전체 워크플로우"""
+        """ì „ì²´ ì›Œí¬í”Œë¡œìš°"""
         with tempfile.TemporaryDirectory() as tmpdir:
             project = Path(tmpdir)
             
@@ -775,11 +775,11 @@ class TestIntegration(unittest.TestCase):
             self.assertIsNotNone(result.mermaid_diagram)
     
     def test_hybrid_project_workflow(self):
-        """하이브리드 프로젝트 워크플로우"""
+        """í•˜ì´ë¸Œë¦¬ë“œ í”„ë¡œì íŠ¸ ì›Œí¬í”Œë¡œìš°"""
         with tempfile.TemporaryDirectory() as tmpdir:
             project = Path(tmpdir)
             
-            # 루트: package.json (frontend)
+            # ë£¨íŠ¸: package.json (frontend)
             (project / "package.json").write_text(json.dumps({
                 "name": "frontend",
                 "dependencies": {"react": "^18.0.0"}
@@ -800,7 +800,7 @@ dependencies = [
 dev = ["pytest>=7.0"]
 """)
             
-            # 소스 파일
+            # ì†ŒìŠ¤ íŒŒì¼
             src = project / "src"
             src.mkdir()
             (src / "App.tsx").write_text("import React from 'react';\nimport axios from 'axios';")
@@ -811,7 +811,7 @@ dev = ["pytest>=7.0"]
             
             result = analyze(str(project), verify=False)
             
-            # 하이브리드 생태계 감지
+            # í•˜ì´ë¸Œë¦¬ë“œ ìƒíƒœê³„ ê°ì§€
             self.assertTrue("javascript" in result.ecosystem.lower() or "npm" in result.ecosystem.lower())
             
             # JS phantom: axios
@@ -823,10 +823,10 @@ dev = ["pytest>=7.0"]
 
 
 class TestNodeBuiltinComprehensive(unittest.TestCase):
-    """Node.js 내장 모듈 포괄 테스트"""
+    """Node.js ë‚´ìž¥ ëª¨ë“ˆ í¬ê´„ í…ŒìŠ¤íŠ¸"""
     
     def test_all_common_builtins(self):
-        """자주 쓰이는 내장 모듈"""
+        """ìžì£¼ ì“°ì´ëŠ” ë‚´ìž¥ ëª¨ë“ˆ"""
         common_builtins = [
             'fs', 'path', 'http', 'https', 'url', 'util', 'os',
             'crypto', 'stream', 'events', 'child_process', 'buffer',
@@ -840,10 +840,10 @@ class TestNodeBuiltinComprehensive(unittest.TestCase):
 
 
 class TestPythonStdlibComprehensive(unittest.TestCase):
-    """Python 표준 라이브러리 포괄 테스트"""
+    """Python í‘œì¤€ ë¼ì´ë¸ŒëŸ¬ë¦¬ í¬ê´„ í…ŒìŠ¤íŠ¸"""
     
     def test_all_common_stdlib(self):
-        """자주 쓰이는 표준 라이브러리"""
+        """ìžì£¼ ì“°ì´ëŠ” í‘œì¤€ ë¼ì´ë¸ŒëŸ¬ë¦¬"""
         common_stdlib = [
             'os', 'sys', 'json', 're', 'datetime', 'collections',
             'itertools', 'functools', 'pathlib', 'typing', 'logging',
@@ -857,14 +857,14 @@ class TestPythonStdlibComprehensive(unittest.TestCase):
 
 
 class TestLocalModuleFiltering(unittest.TestCase):
-    """내부 모듈 필터링 테스트"""
+    """ë‚´ë¶€ ëª¨ë“ˆ í•„í„°ë§ í…ŒìŠ¤íŠ¸"""
     
     def test_self_detection_filtered(self):
-        """도구 자신의 소스코드가 Phantom으로 잡히지 않음"""
+        """ë„êµ¬ ìžì‹ ì˜ ì†ŒìŠ¤ì½”ë“œê°€ Phantomìœ¼ë¡œ ìž¡ížˆì§€ ì•ŠìŒ"""
         with tempfile.TemporaryDirectory() as tmpdir:
             project = Path(tmpdir)
             
-            # 내부 모듈 구조 생성
+            # ë‚´ë¶€ ëª¨ë“ˆ êµ¬ì¡° ìƒì„±
             (project / "analyzer.py").write_text("# analyzer module\n")
             (project / "models.py").write_text("# models module\n")
             (project / "main.py").write_text(
@@ -876,16 +876,16 @@ class TestLocalModuleFiltering(unittest.TestCase):
             phantoms = detector.detect()
             
             phantom_packages = {p.package for p in phantoms}
-            # 내부 모듈은 Phantom으로 잡히면 안됨
+            # ë‚´ë¶€ ëª¨ë“ˆì€ Phantomìœ¼ë¡œ ìž¡ížˆë©´ ì•ˆë¨
             self.assertNotIn("analyzer", phantom_packages)
             self.assertNotIn("models", phantom_packages)
     
     def test_package_self_detection_filtered(self):
-        """패키지 형태의 내부 모듈 필터링"""
+        """íŒ¨í‚¤ì§€ í˜•íƒœì˜ ë‚´ë¶€ ëª¨ë“ˆ í•„í„°ë§"""
         with tempfile.TemporaryDirectory() as tmpdir:
             project = Path(tmpdir)
             
-            # 패키지 구조
+            # íŒ¨í‚¤ì§€ êµ¬ì¡°
             pkg = project / "mypackage"
             pkg.mkdir()
             (pkg / "__init__.py").write_text("# package init\n")
@@ -901,18 +901,18 @@ class TestLocalModuleFiltering(unittest.TestCase):
 
 
 class TestASTBasedParsing(unittest.TestCase):
-    """AST 기반 파싱 테스트 (문자열 내 import 오탐 방지)"""
+    """AST ê¸°ë°˜ íŒŒì‹± í…ŒìŠ¤íŠ¸ (ë¬¸ìžì—´ ë‚´ import ì˜¤íƒ ë°©ì§€)"""
     
     def test_string_import_ignored(self):
-        """문자열 내의 import 문은 무시됨"""
+        """ë¬¸ìžì—´ ë‚´ì˜ import ë¬¸ì€ ë¬´ì‹œë¨"""
         with tempfile.NamedTemporaryFile(suffix='.py', mode='w', delete=False) as f:
             f.write('''
-# 테스트용 문자열
+# í…ŒìŠ¤íŠ¸ìš© ë¬¸ìžì—´
 test_code = """
 import react from 'react';
 import axios from 'axios';
 """
-# 실제 import
+# ì‹¤ì œ import
 import json
 ''')
             f.flush()
@@ -921,17 +921,17 @@ import json
             imports = extractor.extract_file(Path(f.name))
             
             packages = {i.package for i in imports}
-            # 문자열 안의 react, axios는 잡히면 안됨
+            # ë¬¸ìžì—´ ì•ˆì˜ react, axiosëŠ” ìž¡ížˆë©´ ì•ˆë¨
             self.assertNotIn("react", packages)
             self.assertNotIn("axios", packages)
     
     def test_comment_import_ignored(self):
-        """주석 내의 import 언급은 무시됨"""
+        """ì£¼ì„ ë‚´ì˜ import ì–¸ê¸‰ì€ ë¬´ì‹œë¨"""
         with tempfile.NamedTemporaryFile(suffix='.py', mode='w', delete=False) as f:
             f.write('''
 # import nonexistent_package
 # from fake_module import something
-import json  # 실제 import
+import json  # ì‹¤ì œ import
 ''')
             f.flush()
             
@@ -944,7 +944,7 @@ import json  # 실제 import
 
 
 def run_tests():
-    """테스트 실행"""
+    """í…ŒìŠ¤íŠ¸ ì‹¤í–‰"""
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     
